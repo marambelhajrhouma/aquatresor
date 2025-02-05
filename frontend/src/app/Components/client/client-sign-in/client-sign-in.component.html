@@ -1,0 +1,114 @@
+<section class="min-vh-100 d-flex align-items-center bg-light">
+  <div class="container">
+    <div class="row g-0 align-items-center justify-content-center">
+      <!-- Image Column -->
+      <div class="col-lg-6 mb-5 mb-lg-0">
+        <div class="card card-cascade">
+          <div class="view overlay">
+            <img src="https://img.freepik.com/vektoren-kostenlos/e-commerce-checkout-laptop-konzeptillustration_114360-8243.jpg" 
+                 class="card-img-top" 
+                 alt="Interface connexion"
+                 style="border-top-left-radius: .5rem; border-top-right-radius: .5rem;" />
+            <div class="mask rgba-white-slight"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Column -->
+      <div class="col-lg-6 mb-5 mb-lg-0">
+        <div class="card cascading-right" style="
+            background: hsla(0, 0%, 100%, 0.55);
+            backdrop-filter: blur(30px);
+            border-radius: 1rem;
+            box-shadow: 0 15px 25px rgba(0,0,0,.2);
+          ">
+          <div class="card-body p-5">
+            <div class="text-center mb-5">
+              <h2 class="fw-bold mb-0">Connexion</h2>
+              <p class="text-muted mt-2">Accédez à votre compte</p>
+            </div>
+
+            <form (ngSubmit)="onSubmit()">
+              <!-- Email input -->
+              <div class="form-floating mb-4">
+                <input type="email" 
+                       id="email" 
+                       class="form-control" 
+                       [(ngModel)]="email"
+                       name="email" 
+                       placeholder="Email"
+                       required />
+                <label for="email">Adresse email</label>
+              </div>
+
+              <!-- Password input -->
+              <div class="form-floating mb-4">
+                <input type="password" 
+                       id="password" 
+                       class="form-control" 
+                       [(ngModel)]="password"
+                       name="password" 
+                       placeholder="Mot de passe"
+                       required />
+                <label for="password">Mot de passe</label>
+              </div>
+
+              <!-- Remember me & Forgot password -->
+              <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="form-check">
+                  <input type="checkbox" 
+                         class="form-check-input" 
+                         id="rememberMe"
+                         name="rememberMe" />
+                  <label class="form-check-label" for="rememberMe">
+                    Se souvenir de moi
+                  </label>
+                </div>
+                <a href="#" class="text-primary text-decoration-none">
+                  Mot de passe oublié ?
+                </a>
+              </div>
+
+              <!-- Login button -->
+              <button type="submit" 
+                      class="btn btn-primary w-100 mb-4 py-3 fw-bold">
+                Se connecter
+              </button>
+
+              <!-- Divider -->
+              <div class="text-center position-relative my-4">
+                <hr class="text-muted"/>
+                <span class="position-absolute top-50 start-50 translate-middle px-3 bg-white text-muted">
+                  ou connectez-vous avec
+                </span>
+              </div>
+
+              <!-- Social login -->
+              <div class="d-flex justify-content-center gap-3 mb-4">
+                <button type="button" class="btn btn-light btn-floating">
+                  <i class="fab fa-google"></i>
+                </button>
+                <button type="button" class="btn btn-light btn-floating">
+                  <i class="fab fa-facebook-f"></i>
+                </button>
+                <button type="button" class="btn btn-light btn-floating">
+                  <i class="fab fa-twitter"></i>
+                </button>
+              </div>
+
+              <!-- Register link -->
+              <div class="text-center">
+                <p class="mb-0">
+                  Pas encore de compte ? 
+                  <a routerLink="/client/signup" class="text-primary text-decoration-none fw-bold">
+                    S'inscrire
+                  </a>
+                </p>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

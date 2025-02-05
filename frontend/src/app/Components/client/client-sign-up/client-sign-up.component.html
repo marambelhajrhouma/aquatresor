@@ -1,0 +1,147 @@
+<section class="min-vh-100 d-flex align-items-center bg-light">
+  <div class="container">
+    <div class="row g-0 align-items-center justify-content-center">
+      <!-- Form Column -->
+      <div class="col-lg-6 mb-5 mb-lg-0">
+        <div class="card cascading-right" style="
+            background: hsla(0, 0%, 100%, 0.55);
+            backdrop-filter: blur(30px);
+            border-radius: 1rem;
+            box-shadow: 0 15px 25px rgba(0,0,0,.2);
+          ">
+          <div class="card-body p-5">
+            <div class="text-center mb-5">
+              <h2 class="fw-bold mb-0">Créer un compte</h2>
+              <p class="text-muted mt-2">Rejoignez-nous dès maintenant</p>
+            </div>
+
+            <form (ngSubmit)="onSubmit()">
+              <!-- Name inputs -->
+              <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                  <div class="form-floating">
+                    <input type="text" 
+                           id="firstName" 
+                           class="form-control" 
+                           name="firstName" 
+                           placeholder="Prénom"
+                           required />
+                    <label for="firstName">Prénom</label>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-floating">
+                    <input type="text" 
+                           id="lastName" 
+                           class="form-control" 
+                           name="lastName" 
+                           placeholder="Nom"
+                           required />
+                    <label for="lastName">Nom</label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Email input -->
+              <div class="form-floating mb-4">
+                <input type="email" 
+                       id="email" 
+                       class="form-control" 
+                       [(ngModel)]="email"
+                       name="email" 
+                       placeholder="Email"
+                       required />
+                <label for="email">Adresse email</label>
+              </div>
+
+              <!-- Password inputs -->
+              <div class="form-floating mb-4">
+                <input type="password" 
+                       id="password" 
+                       class="form-control" 
+                       [(ngModel)]="password"
+                       name="password" 
+                       placeholder="Mot de passe"
+                       required />
+                <label for="password">Mot de passe</label>
+              </div>
+
+              <div class="form-floating mb-4">
+                <input type="password" 
+                       id="confirmPassword" 
+                       class="form-control" 
+          
+                       name="confirmPassword" 
+                       placeholder="Confirmer le mot de passe"
+                       required />
+                <label for="confirmPassword">Confirmer le mot de passe</label>
+              </div>
+
+              <!-- Terms -->
+              <div class="form-check mb-4">
+                <input type="checkbox" 
+                       class="form-check-input" 
+                       id="terms"
+                       required />
+                <label class="form-check-label" for="terms">
+                  J'accepte les <a href="#" class="text-primary">conditions d'utilisation</a>
+                  et la <a href="#" class="text-primary">politique de confidentialité</a>
+                </label>
+              </div>
+
+              <!-- Register button -->
+              <button type="submit" 
+                      class="btn btn-primary w-100 mb-4 py-3 fw-bold">
+                S'inscrire
+              </button>
+
+              <!-- Divider -->
+              <div class="text-center position-relative my-4">
+                <hr class="text-muted"/>
+                <span class="position-absolute top-50 start-50 translate-middle px-3 bg-white text-muted">
+                  ou inscrivez-vous avec
+                </span>
+              </div>
+
+              <!-- Social register -->
+              <div class="d-flex justify-content-center gap-3 mb-4">
+                <button type="button" class="btn btn-light btn-floating">
+                  <i class="fab fa-google"></i>
+                </button>
+                <button type="button" class="btn btn-light btn-floating">
+                  <i class="fab fa-facebook-f"></i>
+                </button>
+                <button type="button" class="btn btn-light btn-floating">
+                  <i class="fab fa-twitter"></i>
+                </button>
+              </div>
+
+              <!-- Login link -->
+              <div class="text-center">
+                <p class="mb-0">
+                  Déjà inscrit ? 
+                  <a routerLink="/client/signin" class="text-primary text-decoration-none fw-bold">
+                    Se connecter
+                  </a>
+                </p>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Image Column -->
+      <div class="col-lg-6 mb-5 mb-lg-0">
+        <div class="card card-cascade">
+          <div class="view overlay">
+            <img src="/api/placeholder/600/400" 
+                 class="card-img-top" 
+                 alt="Interface inscription"
+                 style="border-top-left-radius: .5rem; border-top-right-radius: .5rem;" />
+            <div class="mask rgba-white-slight"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
