@@ -25,18 +25,21 @@ public class ClientController {
         this.passwordEncoder = passwordEncoder;
     }
 
+  
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody Client client) {
         if (client.getFullName() == null || client.getEmail() == null || client.getPassword() == null ||
             client.getPhoneNumber() == null || client.getAddress() == null || client.getCity() == null ||
             client.getZipCode() == null || client.getCountry() == null) {
-            return ResponseEntity.badRequest().body("Tous les champs sont obligatoires");
+            return ResponseEntity.badRequest().body(Map.of("message", "Tous les champs sont obligatoires"));
         }
 
         // Hacher le mot de passe avant d'enregistrer
         client.setPassword(passwordEncoder.encode(client.getPassword()));
         clientService.saveClient(client);
-        return ResponseEntity.ok("Client enregistré avec succès");
+
+        // Renvoyer une réponse JSON
+        return ResponseEntity.ok(Map.of("message", "Client enregistré avec succès"));
     }
 
     @PostMapping("/login")

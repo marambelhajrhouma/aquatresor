@@ -34,16 +34,31 @@ public class AdminController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> loginRequest) {
-        Admin admin = adminService.findByEmail(loginRequest.get("email")).orElse(null);
-        
-        if (admin != null && new BCryptPasswordEncoder().matches(loginRequest.get("password"), admin.getPassword())) {
-            String jwt = JWT.create()
-                    .withSubject(admin.getEmail())
-                    .withArrayClaim("roles", new String[]{"ADMIN"}) // ✅ Correction ici
-                    .withExpiresAt(new Date(System.currentTimeMillis() + SecParams.EXP_TIME))
-                    .sign(Algorithm.HMAC256(SecParams.SECRET));
+        String email = loginRequest.get("email");
+        String password = loginRequest.get("password");
 
-            return ResponseEntity.ok(Map.of("token", jwt));
+        System.out.println("Received login request with email: " + email + " and password: " + password);
+
+        Admin admin = adminService.findByEmail(email).orElse(null);
+
+        if (admin != null) {
+            System.out.println("Admin found in DB with email: " + admin.getEmail());
+            System.out.println("Stored hashed password: " + admin.getPassword());
+
+            BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+            boolean passwordMatches = encoder.matches(password, admin.getPassword());
+
+            System.out.println("Password matches: " + passwordMatches);
+
+            if (passwordMatches) {
+                String jwt = JWT.create()
+                        .withSubject(admin.getEmail())
+                        .withArrayClaim("roles", new String[]{"ADMIN"})
+                        .withExpiresAt(new Date(System.currentTimeMillis() + SecParams.EXP_TIME))
+                        .sign(Algorithm.HMAC256(SecParams.SECRET));
+
+                return ResponseEntity.ok(Map.of("token", jwt));
+            }
         }
         return ResponseEntity.status(401).body(Map.of("message", "Identifiants incorrects"));
     }

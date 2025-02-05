@@ -10,15 +10,18 @@ export class AuthService {
 
   constructor(private http: HttpClient) {}
 
-  login(email: string, password: string): Observable<any> {
-    const body = { email, password };
-    console.log('Sending login request with:', body);
-    return this.http.post(`${this.apiUrl}/login`, body, { withCredentials: true, observe: 'response' });
-  }
-
+login(email: string, password: string): Observable<any> {
+  const body = { email, password };
+  console.log('Sending login request with:', body); // Vérifiez les données envoyées
+  return this.http.post(`${this.apiUrl}/login`, body, { observe: 'response' });
+}
   updatePassword(email: string, currentPassword: string, newPassword: string): Observable<any> {
     const body = { email, currentPassword, newPassword };
     console.log('Sending update password request with:', body);
-    return this.http.post(`${this.apiUrl}/update-password`, body, { withCredentials: true });
+    return this.http.post(`${this.apiUrl}/update-password`, body);
+  }
+
+  getToken(): string | null {
+    return localStorage.getItem('token');
   }
 }

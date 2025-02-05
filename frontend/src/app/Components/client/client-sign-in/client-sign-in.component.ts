@@ -18,7 +18,7 @@ export class ClientSignInComponent {
       (response: any) => {
         console.log('Connexion réussie', response);
         this.authService.setToken(response.token); // Stocker le token
-        this.router.navigate(['/client/dashboard']); // Rediriger vers le tableau de bord
+        this.router.navigate(['/client/homepage']); // Rediriger vers le tableau de bord
       },
       error => {
         console.error('Échec de la connexion', error);

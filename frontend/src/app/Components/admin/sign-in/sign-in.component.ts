@@ -14,14 +14,20 @@ export class SignInComponent {
 
   constructor(private authService: AuthService, private router: Router) {}
 
-  // Soumission du formulaire
+  
   onSubmit() {
+
     console.log('Tentative de connexion avec:', this.email, this.password);
     this.authService.login(this.email, this.password).subscribe(
-      response => {
+      (response: any) => {
         console.log('Login successful', response);
-        // Optionally store the token in local storage or a service if needed
-        this.router.navigate(['/admin/dashboard']);
+        if (response.body && response.body.token) {
+          localStorage.setItem('token', response.body.token);
+          this.router.navigate(['/admin/dashboard']);
+        } else {
+          console.error('Token not found in response');
+          alert('Identifiants incorrects');
+        }
       },
       error => {
         console.error('Login failed', error);
@@ -29,7 +35,6 @@ export class SignInComponent {
       }
     );
   }
-
   // Activation du focus
   setFocus(field: string) {
     this.focusedField = field;
@@ -44,4 +49,7 @@ export class SignInComponent {
       this.focusedField = '';
     }
   }
+
+
+  
 }

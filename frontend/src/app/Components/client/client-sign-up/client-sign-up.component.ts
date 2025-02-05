@@ -8,29 +8,49 @@ import { AuthService } from '../../../Services/client/auth.service';
   styleUrls: ['./client-sign-up.component.css']
 })
 export class ClientSignUpComponent {
-  name: string = '';
+  fullName: string = '';
   email: string = '';
   password: string = '';
-  repeatPassword: string = '';
+  confirmPassword: string = '';
+  phoneNumber: string = '';
+  address: string = '';
+  city: string = '';
+  zipCode: string = '';
+  country: string = '';
   termsAccepted: boolean = false;
 
   constructor(private authService: AuthService, private router: Router) {}
 
   onSubmit() {
-    if (this.password !== this.repeatPassword) {
+    // Vérifier que les mots de passe correspondent
+    if (this.password !== this.confirmPassword) {
       alert('Les mots de passe ne correspondent pas');
       return;
     }
 
+    // Vérifier que les conditions sont acceptées
+    if (!this.termsAccepted) {
+      alert('Vous devez accepter les conditions d\'utilisation');
+      return;
+    }
+
+    // Créer l'objet client à envoyer au backend
     const client = {
-      name: this.name,
+      fullName: this.fullName,
       email: this.email,
-      password: this.password
+      password: this.password,
+      phoneNumber: this.phoneNumber,
+      address: this.address,
+      city: this.city,
+      zipCode: this.zipCode,
+      country: this.country
     };
 
+    // Envoyer la requête d'inscription
     this.authService.register(client).subscribe(
-      response => {
+      (response: any) => {
         console.log('Inscription réussie', response);
+        alert(response.message); // Afficher le message de succès
         this.router.navigate(['/client/signin']); // Rediriger vers la page de connexion
       },
       error => {

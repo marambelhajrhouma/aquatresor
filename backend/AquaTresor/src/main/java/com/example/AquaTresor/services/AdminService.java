@@ -33,9 +33,10 @@ public class AdminService implements UserDetailsService {
     }
 
 
-    public Admin saveAdmin(Admin admin) {
-        admin.setPassword(passwordEncoder.encode(admin.getPassword()));
-        return adminRepository.save(admin);
+    public void saveAdmin(Admin admin) {
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        admin.setPassword(encoder.encode(admin.getPassword())); // Hacher le mot de passe
+        adminRepository.save(admin);
     }
 
     public Optional<Admin> findByEmail(String email) {

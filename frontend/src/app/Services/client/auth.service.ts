@@ -12,11 +12,12 @@ export class AuthService {
 
   login(email: string, password: string): Observable<any> {
     const body = { email, password };
-    return this.http.post(`${this.apiUrl}/login`, body);
+    console.log('Sending login request with:', body);
+    return this.http.post(`${this.apiUrl}/login`, body, { observe: 'response' });
   }
 
   register(client: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/register`, client);
+    return this.http.post(`${this.apiUrl}/register`, client, { responseType: 'json' });
   }
 
   // Stocker le token dans le localStorage
