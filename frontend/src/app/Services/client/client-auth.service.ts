@@ -1,14 +1,18 @@
-import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { Router } from '@angular/router'; // Importez le Router
 
 @Injectable({
   providedIn: 'root'
 })
-export class AuthService {
+export class ClientAuthService {
   private apiUrl = 'http://localhost:8090/api/client'; // URL de votre backend
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private router: Router // Injectez le Router
+  ) {}
 
   login(email: string, password: string): Observable<any> {
     const body = { email, password };
@@ -30,8 +34,8 @@ export class AuthService {
     return localStorage.getItem('token');
   }
 
-  // Supprimer le token du localStorage
   logout(): void {
     localStorage.removeItem('token');
+    this.router.navigate(['/client/signin']); // Rediriger vers la page de connexion client
   }
 }

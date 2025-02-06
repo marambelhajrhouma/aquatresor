@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
-
-import { AuthService } from '../../../Services/client/auth.service';
+import { ClientAuthService } from '../../../Services/client/client-auth.service';
 
 @Component({
   selector: 'app-client-sign-up',
@@ -20,7 +19,7 @@ export class ClientSignUpComponent {
   country: string = '';
   termsAccepted: boolean = false;
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(private authService: ClientAuthService, private router: Router) {}
 
   onSubmit() {
     // Vérifier que les mots de passe correspondent
