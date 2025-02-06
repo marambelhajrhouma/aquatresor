@@ -15,7 +15,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
 import java.util.Collections;
-
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
@@ -23,7 +22,7 @@ public class SecurityConfig {
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(); // Définir le bean BCryptPasswordEncoder
+        return new BCryptPasswordEncoder();
     }
 
     @Bean
@@ -31,12 +30,14 @@ public class SecurityConfig {
         http
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .csrf(csrf -> csrf.disable())
-            .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Configuration CORS intégrée
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .authorizeHttpRequests(requests -> requests
-                .requestMatchers("/api/admin/login", "/api/admin/register").permitAll() // Autoriser l'accès sans authentification
-                .requestMatchers("/api/client/login", "/api/client/register").permitAll() // Autoriser l'accès sans authentification
-                .anyRequest().authenticated() // Toutes les autres requêtes nécessitent une authentification
-            )
+            	    .requestMatchers("/api/admin/login", "/api/admin/register").permitAll()
+            	    .requestMatchers("/api/client/login", "/api/client/register").permitAll()
+            	    .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
+            	    .anyRequest().authenticated()
+            	)
+            
             .addFilterBefore(new JWTAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -45,15 +46,14 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Collections.singletonList("http://localhost:4200")); // Autoriser Angular
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS")); // Méthodes autorisées
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type")); // Autoriser les en-têtes nécessaires
-        configuration.setExposedHeaders(Collections.singletonList("Authorization")); // Exposer l'en-tête Authorization
-        configuration.setAllowCredentials(true); // Autoriser les credentials (cookies, etc.)
+        configuration.setAllowedOrigins(Collections.singletonList("http://localhost:4200"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
+        configuration.setExposedHeaders(Collections.singletonList("Authorization"));
+        configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration); // Appliquer à toutes les routes
+        source.registerCorsConfiguration("/**", configuration);
         return source;
     }
-    
 }

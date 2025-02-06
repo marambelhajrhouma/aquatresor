@@ -1,64 +1,53 @@
 package com.example.AquaTresor.security;
 
 import com.auth0.jwt.JWT;
-import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
+
 public class JWTAuthorizationFilter extends OncePerRequestFilter {
 
-	@Override
-	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-	        throws ServletException, IOException {
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
+        String jwtToken = request.getHeader("Authorization");
+        if (jwtToken == null || !jwtToken.startsWith(SecParams.PREFIX)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
-	    // Exclure les requêtes pour /register et /login de la vérification du JWT
-	    if (request.getRequestURI().contains("/api/client/login") || request.getRequestURI().contains("/api/client/register")) {
-	        filterChain.doFilter(request, response);
-	        return;
-	    }
+        // Vérifier et décoder le token JWT
+        try {
+            DecodedJWT decodedJWT = JWT.require(Algorithm.HMAC256(SecParams.SECRET))
+                    .build()
+                    .verify(jwtToken.substring(SecParams.PREFIX.length()));
 
-	    String jwt = request.getHeader("Authorization");
+            String email = decodedJWT.getSubject();
+            List<String> roles = decodedJWT.getClaim("roles").asList(String.class);
 
-	    if (jwt == null || !jwt.startsWith(SecParams.PREFIX)) {
-	        filterChain.doFilter(request, response);
-	        return;
-	    }
+            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+                email,
+                null,
+                roles.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList())
+            );
 
-	    try {
-	        JWTVerifier verifier = JWT.require(Algorithm.HMAC256(SecParams.SECRET)).build();
-	        jwt = jwt.substring(SecParams.PREFIX.length());
-	        DecodedJWT decodedJWT = verifier.verify(jwt);
-
-	        String username = decodedJWT.getSubject();
-	        String role = decodedJWT.getClaim("roles").asString();
-
-	        Collection<GrantedAuthority> authorities = new ArrayList<>();
-	        authorities.add(new SimpleGrantedAuthority("ROLE_" + role));
-
-	        UsernamePasswordAuthenticationToken user =
-	                new UsernamePasswordAuthenticationToken(username, null, authorities);
-	        SecurityContextHolder.getContext().setAuthentication(user);
-
-	    } catch (Exception e) {
-	        response.sendError(HttpServletResponse.SC_FORBIDDEN, "Invalid JWT: " + e.getMessage());
-	        return;
-	    }
-
-	    filterChain.doFilter(request, response);
-	}
-
-    
+            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+            
+            filterChain.doFilter(request, response);
+        } catch (Exception e) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.getWriter().write("Accès interdit : token invalide");
+        }
+    }
 }

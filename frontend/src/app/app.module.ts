@@ -16,6 +16,7 @@ import { EditProfileComponent } from './Components/admin/edit-profile/edit-profi
 import { ClientSignInComponent } from './Components/client/client-sign-in/client-sign-in.component';
 import { ClientSignUpComponent } from './Components/client/client-sign-up/client-sign-up.component';
 import { HomePageComponent } from './Components/client/home-page/home-page.component';
+import { ClientListComponent } from './Components/admin/client-list/client-list.component';
 
 
 @NgModule({
@@ -28,6 +29,7 @@ import { HomePageComponent } from './Components/client/home-page/home-page.compo
     ClientSignInComponent,
     ClientSignUpComponent,
     HomePageComponent,
+    ClientListComponent,
     
   ],
   imports: [

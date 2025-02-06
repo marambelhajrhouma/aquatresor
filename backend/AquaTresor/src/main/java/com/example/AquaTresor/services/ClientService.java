@@ -22,7 +22,9 @@ public class ClientService implements UserDetailsService {
         this.clientRepository = clientRepository;
         this.passwordEncoder = passwordEncoder;
     }
-
+    public List<Client> getAllClients() {
+        return clientRepository.findAll();
+    }
     public void saveClient(Client client) {
         // Hacher le mot de passe avant d'enregistrer le client
         client.setPassword(passwordEncoder.encode(client.getPassword()));

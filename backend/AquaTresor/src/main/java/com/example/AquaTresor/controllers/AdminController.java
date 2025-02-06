@@ -3,9 +3,13 @@ package com.example.AquaTresor.controllers;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.example.AquaTresor.entities.Admin;
+import com.example.AquaTresor.entities.Client;
 import com.example.AquaTresor.security.SecParams;
 import com.example.AquaTresor.services.AdminService;
+import com.example.AquaTresor.services.ClientService;
+
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -19,11 +23,13 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/admin")
 public class AdminController {
-    private final AdminService adminService;
+	 private final AdminService adminService;
+	    private final ClientService clientService;
 
-    public AdminController(AdminService adminService) {
-        this.adminService = adminService;
-    }
+	    public AdminController(AdminService adminService, ClientService clientService) {
+	        this.adminService = adminService;
+	        this.clientService = clientService;
+	    }
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody Admin admin) {
@@ -51,13 +57,12 @@ public class AdminController {
             System.out.println("Password matches: " + passwordMatches);
 
             if (passwordMatches) {
-                String jwt = JWT.create()
-                        .withSubject(admin.getEmail())
-                        .withArrayClaim("roles", new String[]{"ADMIN"})
-                        .withExpiresAt(new Date(System.currentTimeMillis() + SecParams.EXP_TIME))
-                        .sign(Algorithm.HMAC256(SecParams.SECRET));
-
-                // Renvoyer le token dans la réponse
+            	String jwt = JWT.create()
+            		    .withSubject(admin.getEmail())
+            		    .withArrayClaim("roles", new String[]{"ROLE_ADMIN"}) // Ajouter "ROLE_" devant "ADMIN"
+            		    .withExpiresAt(new Date(System.currentTimeMillis() + SecParams.EXP_TIME))
+            		    .sign(Algorithm.HMAC256(SecParams.SECRET));
+            	// Renvoyer le token dans la réponse
                 return ResponseEntity.ok(Map.of("token", jwt));
             }
         }
@@ -90,6 +95,14 @@ public class AdminController {
             return ResponseEntity.ok(Map.of("message", "Mot de passe mis à jour"));
         }
         return ResponseEntity.status(400).body(Map.of("message", "Mot de passe incorrect"));
+    }
+    
+
+    @GetMapping("/users")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')") 
+    public ResponseEntity<List<Client>> getAllClients() {
+        List<Client> clients = clientService.getAllClients();
+        return ResponseEntity.ok(clients);
     }
     
 }
