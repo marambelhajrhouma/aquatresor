@@ -57,11 +57,13 @@ public class AdminController {
                         .withExpiresAt(new Date(System.currentTimeMillis() + SecParams.EXP_TIME))
                         .sign(Algorithm.HMAC256(SecParams.SECRET));
 
+                // Renvoyer le token dans la réponse
                 return ResponseEntity.ok(Map.of("token", jwt));
             }
         }
         return ResponseEntity.status(401).body(Map.of("message", "Identifiants incorrects"));
     }
+
 
     @PostMapping("/update-password")
     public ResponseEntity<?> updatePassword(@RequestBody Map<String, String> passwordRequest) {
@@ -75,7 +77,7 @@ public class AdminController {
 
         // Vérifier que l'email de la requête correspond à l'utilisateur authentifié
         if (!email.equals(passwordRequest.get("email"))) {
-            return ResponseEntity.status(403).body("Accès interdit : vous ne pouvez pas modifier le mot de passe d'un autre utilisateur");
+            return ResponseEntity.status(403).body(Map.of("message", "Accès interdit : vous ne pouvez pas modifier le mot de passe d'un autre utilisateur"));
         }
 
         // Mettre à jour le mot de passe
@@ -85,8 +87,9 @@ public class AdminController {
                 passwordRequest.get("newPassword")
         );
         if (isUpdated) {
-            return ResponseEntity.ok("Mot de passe mis à jour");
+            return ResponseEntity.ok(Map.of("message", "Mot de passe mis à jour"));
         }
-        return ResponseEntity.status(400).body("Mot de passe incorrect");
+        return ResponseEntity.status(400).body(Map.of("message", "Mot de passe incorrect"));
     }
+    
 }

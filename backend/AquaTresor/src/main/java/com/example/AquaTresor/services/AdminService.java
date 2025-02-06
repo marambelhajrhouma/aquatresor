@@ -44,16 +44,20 @@ public class AdminService implements UserDetailsService {
     }
 
     public boolean updatePassword(String email, String currentPassword, String newPassword) {
-        Admin admin = adminRepository.findByEmail(email)
-            .orElseThrow(() -> new UsernameNotFoundException("Admin not found with email: " + email));
-
-        System.out.println("Current password from DB: " + admin.getPassword()); // Log du mot de passe stocké
-        System.out.println("Current password from request: " + currentPassword); // Log du mot de passe fourni
-
-        if (passwordEncoder.matches(currentPassword, admin.getPassword())) {
-            admin.setPassword(passwordEncoder.encode(newPassword));
-            adminRepository.save(admin);
-            return true;
+        Optional<Admin> adminOptional = findByEmail(email);
+        if (adminOptional.isPresent()) {
+            Admin admin = adminOptional.get();
+            BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+            if (encoder.matches(currentPassword, admin.getPassword())) {
+                admin.setPassword(encoder.encode(newPassword));
+                adminRepository.save(admin);
+                System.out.println("Password updated successfully for email: " + email);
+                return true;
+            } else {
+                System.out.println("Current password does not match for email: " + email);
+            }
+        } else {
+            System.out.println("Admin not found with email: " + email);
         }
         return false;
     }

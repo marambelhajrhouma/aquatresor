@@ -1,7 +1,8 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { CanActivate, Router } from '@angular/router';
 import { AuthService } from './Services/admin/auth.service';
 import { ClientAuthService } from './Services/client/client-auth.service';
+import { isPlatformBrowser } from '@angular/common';
 
 @Injectable({
   providedIn: 'root'
@@ -11,32 +12,33 @@ export class AuthGuard implements CanActivate {
   constructor(
     private authService: AuthService, // Service d'authentification admin
     private clientAuthService: ClientAuthService, // Service d'authentification client
-    private router: Router
+    private router: Router,
+    @Inject(PLATFORM_ID) private platformId: Object // Inject PLATFORM_ID pour vérifier l'environnement
   ) {}
 
   canActivate(): boolean {
-    // Vérifiez si l'utilisateur est authentifié (admin ou client)
-    const isAdminAuthenticated = this.authService.getToken() !== null;
-    const isClientAuthenticated = this.clientAuthService.getToken() !== null;
-  
-    if (isAdminAuthenticated) {
-      // Si l'utilisateur est un admin, autoriser l'accès
-      return true;
-    } else if (isClientAuthenticated) {
-      // Si l'utilisateur est un client, autoriser l'accès
-      return true;
-    } else {
-      // Si l'utilisateur n'est pas authentifié, rediriger vers la page de connexion appropriée
-      const currentRoute = this.router.url; // Récupérer la route actuelle
-  
-      if (currentRoute.startsWith('/admin')) {
-        this.router.navigate(['/admin/signin']); // Rediriger vers la page de connexion admin
-      } else if (currentRoute.startsWith('/client')) {
-        this.router.navigate(['/client/signin']); // Rediriger vers la page de connexion client
+    if (isPlatformBrowser(this.platformId)) { // Vérifiez si vous êtes dans un navigateur
+      // Vérifiez si l'utilisateur est authentifié (admin ou client)
+      const isAdminAuthenticated = this.authService.getToken() !== null;
+      const isClientAuthenticated = this.clientAuthService.getToken() !== null;
+
+      if (isAdminAuthenticated || isClientAuthenticated) {
+        return true; // Autoriser l'accès si un utilisateur est authentifié
       } else {
-        this.router.navigate(['/admin/signin']); // Rediriger vers la page de connexion admin par défaut
+        // Rediriger vers la page de connexion appropriée
+        const currentRoute = this.router.url;
+
+        if (currentRoute.startsWith('/client')) {
+          this.router.navigate(['/client/signin']);
+        } else {
+          this.router.navigate(['/admin/signin']);
+        }
+
+        return false;
       }
-  
+    } else {
+      // Si vous êtes côté serveur, redirigez vers la page de connexion par défaut
+      this.router.navigate(['/admin/signin']);
       return false;
     }
   }

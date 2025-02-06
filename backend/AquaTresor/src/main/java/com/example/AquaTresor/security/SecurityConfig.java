@@ -42,13 +42,12 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // Configuration CORS
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Collections.singletonList("http://localhost:4200")); // Autoriser Angular
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS")); // Méthodes autorisées
-        configuration.setAllowedHeaders(Collections.singletonList("*")); // Autoriser tous les en-têtes
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type")); // Autoriser les en-têtes nécessaires
         configuration.setExposedHeaders(Collections.singletonList("Authorization")); // Exposer l'en-tête Authorization
         configuration.setAllowCredentials(true); // Autoriser les credentials (cookies, etc.)
 
@@ -56,4 +55,5 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", configuration); // Appliquer à toutes les routes
         return source;
     }
+    
 }

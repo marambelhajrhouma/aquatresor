@@ -1,7 +1,8 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { Router } from '@angular/router'; // Importez le Router
+import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { map, Observable, tap } from 'rxjs';
+import { Router } from '@angular/router';
+import { isPlatformBrowser } from '@angular/common';
 
 @Injectable({
   providedIn: 'root'
@@ -11,28 +12,54 @@ export class AuthService {
 
   constructor(
     private http: HttpClient,
-    private router: Router // Injectez le Router
+    private router: Router,
+    @Inject(PLATFORM_ID) private platformId: Object // Inject PLATFORM_ID
   ) {}
 
   login(email: string, password: string): Observable<any> {
     const body = { email, password };
-    console.log('Sending login request with:', body); // Vérifiez les données envoyées
-    return this.http.post(`${this.apiUrl}/login`, body, { observe: 'response' });
+    console.log('Sending login request with:', body);
+    return this.http.post(`${this.apiUrl}/login`, body, { observe: 'response' }).pipe(
+      tap((response: any) => {
+        if (isPlatformBrowser(this.platformId)) { // Vérifiez si vous êtes dans un navigateur
+          if (response.body && response.body.token) {
+            localStorage.setItem('token', response.body.token);
+            localStorage.setItem('email', email);
+          }
+        }
+      })
+    );
   }
 
   updatePassword(email: string, currentPassword: string, newPassword: string): Observable<any> {
     const body = { email, currentPassword, newPassword };
-    console.log('Sending update password request with:', body);
-    return this.http.post(`${this.apiUrl}/update-password`, body);
-  }
+    const headers = new HttpHeaders({
+        'Authorization': `Bearer ${this.getToken()}`,
+        'Content-Type': 'application/json'
+    });
+    return this.http.post(`${this.apiUrl}/update-password`, body, { headers, observe: 'response' }).pipe(
+        map((response: { status: number; body: any; }) => {
+            if (response.status === 200) {
+                return response.body; // Renvoyer le corps de la réponse
+            } else {
+                throw new Error('Échec de la mise à jour du mot de passe');
+            }
+        })
+    );
+}
 
   getToken(): string | null {
-    return localStorage.getItem('token');
+    if (isPlatformBrowser(this.platformId)) { // Vérifiez si vous êtes dans un navigateur
+      return localStorage.getItem('token');
+    }
+    return null;
   }
 
-  
   logout(): void {
-    localStorage.removeItem('token'); // Supprimer le token
-    this.router.navigate(['/admin/signin']); // Rediriger vers la page de connexion admin
+    if (isPlatformBrowser(this.platformId)) { // Vérifiez si vous êtes dans un navigateur
+      localStorage.removeItem('token');
+      localStorage.removeItem('email');
+    }
+    this.router.navigate(['/admin/signin']);
   }
 }

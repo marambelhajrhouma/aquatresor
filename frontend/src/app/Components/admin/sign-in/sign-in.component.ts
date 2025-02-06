@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, Inject, PLATFORM_ID } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../Services/admin/auth.service';
+import { isPlatformBrowser } from '@angular/common';
 
 @Component({
   selector: 'app-sign-in',
@@ -11,30 +12,37 @@ export class SignInComponent {
   email: string = '';
   password: string = '';
   focusedField: string = '';
+  errorMessage: string = '';
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    @Inject(PLATFORM_ID) private platformId: Object // Inject PLATFORM_ID
+  ) {}
 
-  
   onSubmit() {
-
     console.log('Tentative de connexion avec:', this.email, this.password);
     this.authService.login(this.email, this.password).subscribe(
       (response: any) => {
         console.log('Login successful', response);
-        if (response.body && response.body.token) {
-          localStorage.setItem('token', response.body.token);
-          this.router.navigate(['/admin/dashboard']);
-        } else {
-          console.error('Token not found in response');
-          alert('Identifiants incorrects');
+        if (isPlatformBrowser(this.platformId)) { // Vérifiez si vous êtes dans un navigateur
+          if (response.body && response.body.token) {
+            localStorage.setItem('token', response.body.token);
+            localStorage.setItem('email', this.email);
+            this.router.navigate(['/admin/dashboard']);
+          } else {
+            console.error('Token not found in response');
+            this.errorMessage = 'Identifiants incorrects';
+          }
         }
       },
       error => {
         console.error('Login failed', error);
-        alert('Identifiants incorrects');
+        this.errorMessage = 'Identifiants incorrects';
       }
     );
   }
+
   // Activation du focus
   setFocus(field: string) {
     this.focusedField = field;
@@ -49,7 +57,4 @@ export class SignInComponent {
       this.focusedField = '';
     }
   }
-
-
-  
 }
