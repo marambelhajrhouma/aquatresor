@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { ClientService } from '../../../Services/admin/client.service';
-import { AuthService } from '../../../Services/admin/auth.service';
 import { Router } from '@angular/router';
+import { AuthService } from '../../../Services/auth.service';
 
 @Component({
   selector: 'app-client-list',
@@ -11,7 +10,7 @@ import { Router } from '@angular/router';
 export class ClientListComponent implements OnInit {
   clients: any[] = [];
 
-  constructor(private clientService: ClientService,
+  constructor(
     private authService: AuthService, private router: Router
   ) {}
 
@@ -21,14 +20,7 @@ export class ClientListComponent implements OnInit {
 
   // Méthode pour charger la liste des clients
   loadClients(): void {
-    this.clientService.getClients().subscribe(
-      (data) => {
-        this.clients = data;
-      },
-      (error) => {
-        console.error('Erreur lors de la récupération des clients', error);
-      }
-    );
+    
   }
    // Méthode pour gérer la déconnexion
    logout(): void {

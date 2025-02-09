@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { ClientAuthService } from '../../../Services/client/client-auth.service';
+import { AuthService } from '../../../Services/auth.service';
 
 @Component({
   selector: 'app-home-page',
@@ -9,12 +9,12 @@ import { ClientAuthService } from '../../../Services/client/client-auth.service'
 })
 export class HomePageComponent implements OnInit {
 
-  constructor(private authService: ClientAuthService, private router: Router) {}
+  constructor(private authService: AuthService, private router: Router) {}
 
   ngOnInit(): void {
     // Vérifiez si le client est authentifié
     if (!this.authService.getToken()) {
-      this.router.navigate(['/client/signin']); // Rediriger vers la page de connexion client
+      this.router.navigate(['/register']); // Rediriger vers la page de connexion client
     }
   }
 }

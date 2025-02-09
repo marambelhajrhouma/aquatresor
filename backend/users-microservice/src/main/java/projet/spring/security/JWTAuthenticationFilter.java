@@ -1,5 +1,6 @@
 package projet.spring.security;
 
+import java.io.BufferedReader; // Import this line!
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -30,71 +31,84 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
 	private AuthenticationManager authenticationManager;
 
-	public JWTAuthenticationFilter(AuthenticationManager authenticationManager) {
-		super();
-		this.authenticationManager = authenticationManager;
-	}
+    public JWTAuthenticationFilter(AuthenticationManager authenticationManager) {
+        this.authenticationManager = authenticationManager;
+        setFilterProcessesUrl("/login"); // Set the login endpoint
+    }
 
-	@Override
-	public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
-			throws AuthenticationException {
+    @Override
+    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
+            throws AuthenticationException {
 
-		User user = null;
-		try {
-			user = new ObjectMapper().readValue(request.getInputStream(), User.class);
-		} catch (JsonParseException e) {
-			e.printStackTrace();
-		} catch (JsonMappingException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+        try {
+            // Read username and password from request body
+            BufferedReader reader = request.getReader();
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line);
+            }
+            String requestBody = sb.toString();
 
-		return authenticationManager
-				.authenticate(new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
-	}
+            ObjectMapper objectMapper = new ObjectMapper();
+            Map<String, String> creds = objectMapper.readValue(requestBody, Map.class);
+            String username = creds.get("username");
+            String password = creds.get("password");
 
-	@Override
-	protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
-			Authentication authResult) throws IOException, ServletException {
+            return authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(username, password)
+            );
 
-		org.springframework.security.core.userdetails.User springUser = (org.springframework.security.core.userdetails.User) authResult
-				.getPrincipal();
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Error reading request body");
+        }
+    }
 
-		List<String> roles = new ArrayList<>();
-		springUser.getAuthorities().forEach(au -> {
-			roles.add(au.getAuthority());
-		});
 
-		String jwt = JWT.create().withSubject(springUser.getUsername())
-				.withArrayClaim("roles", roles.toArray(new String[roles.size()]))
-				.withExpiresAt(new Date(System.currentTimeMillis() + SecParams.EXP_TIME))
-				.sign(Algorithm.HMAC256(SecParams.SECRET));
+    @Override
+    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
+            Authentication authResult) throws IOException, ServletException {
 
-		response.addHeader("Authorization", jwt);
+        org.springframework.security.core.userdetails.User springUser = 
+            (org.springframework.security.core.userdetails.User) authResult.getPrincipal();
 
-	}
-/******************************************************/
-	
-	@Override
-	protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response,
-			AuthenticationException failed) throws IOException, ServletException {
-		if (failed instanceof DisabledException) {
-			response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-			response.setContentType("application/json");
-			Map<String, Object> data = new HashMap<>();
+        // Extract roles
+        List<String> roles = new ArrayList<>();
+        springUser.getAuthorities().forEach(au -> {
+            roles.add(au.getAuthority());
+        });
 
-			data.put("errorCause", "disabled");
-			data.put("message", "L'utilisateur est désactivé !");
-			ObjectMapper objectMapper = new ObjectMapper();
-			String json = objectMapper.writeValueAsString(data);
-			PrintWriter writer = response.getWriter();
-			writer.println(json);
-			writer.flush();
+        // Generate JWT token
+        String jwt = JWT.create()
+                .withSubject(springUser.getUsername())
+                .withArrayClaim("roles", roles.toArray(new String[roles.size()]))
+                .withExpiresAt(new Date(System.currentTimeMillis() + SecParams.EXP_TIME))
+                .sign(Algorithm.HMAC256(SecParams.SECRET));
 
-		} else {
-			super.unsuccessfulAuthentication(request, response, failed);
-		}
-	}
+        // Add JWT token to the response header
+        response.addHeader("Authorization", SecParams.PREFIX + jwt);
 
+        // Debug: Log the token
+        System.out.println("JWT Token generated: " + jwt);
+    }
+
+    @Override
+    protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response,
+            AuthenticationException failed) throws IOException, ServletException {
+        if (failed instanceof DisabledException) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.setContentType("application/json");
+            Map<String, Object> data = new HashMap<>();
+            data.put("errorCause", "disabled");
+            data.put("message", "L'utilisateur est désactivé !");
+            ObjectMapper objectMapper = new ObjectMapper();
+            String json = objectMapper.writeValueAsString(data);
+            PrintWriter writer = response.getWriter();
+            writer.println(json);
+            writer.flush();
+        } else {
+            super.unsuccessfulAuthentication(request, response, failed);
+        }
+    }
 }

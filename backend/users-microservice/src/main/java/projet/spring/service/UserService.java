@@ -17,5 +17,5 @@ public interface UserService {
 	
 	public void sendEmailUser(User u, String code);
 	public User validateToken(String code);
-
+	  public boolean  updateUserProfile(String username, String newEmail, String newPassword, String currentPassword);
 }
