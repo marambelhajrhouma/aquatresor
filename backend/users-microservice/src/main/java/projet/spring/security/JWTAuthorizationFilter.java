@@ -23,14 +23,14 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 
 public class JWTAuthorizationFilter extends OncePerRequestFilter {
 
-	@Override
-	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-	        throws ServletException, IOException {
-	    String path = request.getServletPath();
-	    if ("/register".equals(path) || "/login".equals(path)) {
-	        filterChain.doFilter(request, response);
-	        return;
-	    }
+	 @Override
+	    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+	            throws ServletException, IOException {
+	        String path = request.getServletPath();
+	        if ("/users/register".equals(path) || "/users/login".equals(path)) {
+	            filterChain.doFilter(request, response);
+	            return;
+	        }
 
 	    // Extract JWT token
 	    String jwt = request.getHeader("Authorization");

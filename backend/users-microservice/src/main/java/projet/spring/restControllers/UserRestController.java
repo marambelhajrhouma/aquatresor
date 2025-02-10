@@ -14,9 +14,10 @@ import projet.spring.entities.User;
 import projet.spring.repos.UserRepository;
 import projet.spring.service.UserService;
 import projet.spring.service.register.RegistrationRequest;
-
 @RestController
-@CrossOrigin(origins = "*") // Important: Allow all origins for development
+@CrossOrigin(origins = "*") 
+@RequestMapping("/users")
+
 public class UserRestController {
 
     @Autowired
@@ -40,7 +41,6 @@ public class UserRestController {
         return userService.validateToken(token);
     }
     
-    
     @PutMapping("/updateProfile")
     public ResponseEntity<?> updateProfile(@RequestBody UpdateProfileRequest request) {
         boolean isUpdated = userService.updateUserProfile(request.getUsername(), request.getNewEmail(), request.getNewPassword(), request.getCurrentPassword());
@@ -55,6 +55,4 @@ public class UserRestController {
                 .body(Map.of("message", "Mot de passe actuel incorrect."));
         }
     }
-
-    
 }

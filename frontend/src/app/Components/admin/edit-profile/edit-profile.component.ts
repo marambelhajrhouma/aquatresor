@@ -15,7 +15,6 @@ export class EditProfileComponent implements OnInit {
   isSuccess: boolean = false;
   isEditing: boolean = false; // Initialize as boolean
 
-  
   constructor(
     private fb: FormBuilder,
     public authService: AuthService, // Assurez-vous que authService est public
@@ -31,6 +30,7 @@ export class EditProfileComponent implements OnInit {
   }
 
   ngOnInit(): void {}
+
   enableEdit() {
     this.isEditing = true;
   }
@@ -38,17 +38,18 @@ export class EditProfileComponent implements OnInit {
   disableEdit() {
     this.isEditing = false;
   }
+
   // Méthode de mise à jour du profil
   onUpdateProfile() {
     if (this.editProfileForm.invalid) {
       return;
     }
-  
+
     const { newEmail, currentPassword, newPassword } = this.editProfileForm.value;
     const username = this.authService.loggedUser;
-  
+
     console.log('Form Data:', { username, newEmail, currentPassword, newPassword });  // Log pour vérifier les valeurs du formulaire
-  
+
     this.authService.updateProfile(username, newEmail, newPassword, currentPassword).subscribe({
       next: (response) => {
         console.log('Update Profile Response:', response);  // Log pour vérifier la réponse
@@ -65,5 +66,4 @@ export class EditProfileComponent implements OnInit {
       }
     });
   }
-  
 }

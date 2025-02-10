@@ -10,7 +10,7 @@ import { tap } from 'rxjs/operators'; // Import tap
   providedIn: 'root',
 })
 export class AuthService {
-  apiURL: string = 'http://localhost:8002'; // URL du microservice users
+  apiURL: string = 'http://localhost:8002/users'; // Ajoutez /users ici
   token!: string;
 
   public loggedUser!: string;
@@ -22,7 +22,7 @@ export class AuthService {
   constructor(private router: Router, private http: HttpClient) {
     this.loadToken(); // Charger le token au démarrage
   }
-  
+
   // Connexion pour les administrateurs et les clients
   login(user: { username: string, password: string }) {
     return this.http.post<any>(`${this.apiURL}/login`, user, {
@@ -40,19 +40,18 @@ export class AuthService {
       })
     );
   }
-  
+
   saveToken(jwt: string) {
     if (jwt?.startsWith('Bearer ')) {
       jwt = jwt.substring(7);
     }
     localStorage.setItem('jwt', jwt);
-    
-    
+
     this.token = jwt;
     this.isloggedIn = true;
     this.decodeJWT(); // Decode the token to extract roles
   }
-  
+
   decodeJWT() {
     if (!this.token) return;
     const decodedToken = this.helper.decodeToken(this.token);
@@ -60,15 +59,15 @@ export class AuthService {
     this.roles = decodedToken.roles;
     this.loggedUser = decodedToken.sub;
   }
-  
- 
+
   // Enregistrement uniquement pour les utilisateurs (clients)
   registerUser(user: User) {
-    return this.http.post<User>(this.apiURL + '/register', user, { observe: 'response' });
+    return this.http.post<User>(`${this.apiURL}/register`, user, { observe: 'response' });
   }
+
   // Validation de l'email
   validateEmail(code: string) {
-    return this.http.get<User>(this.apiURL + '/verifyEmail/' + code).pipe(
+    return this.http.get<User>(`${this.apiURL}/verifyEmail/${code}`).pipe(
       tap((user) => {
         // Save the user details in the AuthService
         this.regitredUser = user;
@@ -76,6 +75,7 @@ export class AuthService {
       })
     );
   }
+
   // Chargement du token depuis le localStorage
   loadToken() {
     this.token = localStorage.getItem('jwt')!;
@@ -101,6 +101,7 @@ export class AuthService {
   isAdmin(): boolean {
     return this.roles?.includes('ADMIN') || false;
   }
+
   // Vérification si le token est expiré
   isTokenExpired(): Boolean {
     return this.helper.isTokenExpired(this.token);
@@ -115,30 +116,27 @@ export class AuthService {
   getRegistredUser() {
     return this.regitredUser;
   }
+
   public get isLoggedIn(): boolean {
     return !!this.getToken(); // Check if a token exists
-}
-
-
-updateProfile(username: string, newEmail?: string, newPassword?: string, currentPassword?: string) {
-  const payload: any = { username };
-  if (newEmail) payload.newEmail = newEmail;
-  if (newPassword && currentPassword) {
-    payload.newPassword = newPassword;
-    payload.currentPassword = currentPassword;
   }
 
-  console.log('Payload:', payload);  // Log pour vérifier le payload
+  updateProfile(username: string, newEmail?: string, newPassword?: string, currentPassword?: string) {
+    const payload: any = { username };
+    if (newEmail) payload.newEmail = newEmail;
+    if (newPassword && currentPassword) {
+      payload.newPassword = newPassword;
+      payload.currentPassword = currentPassword;
+    }
 
-  return this.http.put<any>(`${this.apiURL}/updateProfile`, payload, {
-    headers: { Authorization: `Bearer ${this.getToken()}` }
-  }).pipe(
-    tap(response => {
-      console.log('Server Response:', response);  // Log pour vérifier la réponse du serveur
-    })
-  );
-}
+    console.log('Payload:', payload);  // Log pour vérifier le payload
 
-
-
+    return this.http.put<any>(`${this.apiURL}/updateProfile`, payload, {
+      headers: { Authorization: `Bearer ${this.getToken()}` }
+    }).pipe(
+      tap(response => {
+        console.log('Server Response:', response);
+      })
+    );
+  }
 }

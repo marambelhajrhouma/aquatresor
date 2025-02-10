@@ -31,68 +31,62 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
 	private AuthenticationManager authenticationManager;
 
-    public JWTAuthenticationFilter(AuthenticationManager authenticationManager) {
-        this.authenticationManager = authenticationManager;
-        setFilterProcessesUrl("/login"); // Set the login endpoint
-    }
+	 public JWTAuthenticationFilter(AuthenticationManager authenticationManager) {
+	        this.authenticationManager = authenticationManager;
+	        setFilterProcessesUrl("/users/login"); // Définir l'endpoint de connexion
+	    }
 
-    @Override
-    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
-            throws AuthenticationException {
+	 @Override
+	    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
+	            throws AuthenticationException {
+	        try {
+	            // Lire le corps de la requête
+	            BufferedReader reader = request.getReader();
+	            StringBuilder sb = new StringBuilder();
+	            String line;
+	            while ((line = reader.readLine()) != null) {
+	                sb.append(line);
+	            }
+	            String requestBody = sb.toString();
 
-        try {
-            // Read username and password from request body
-            BufferedReader reader = request.getReader();
-            StringBuilder sb = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                sb.append(line);
-            }
-            String requestBody = sb.toString();
+	            // Convertir le JSON en Map
+	            ObjectMapper objectMapper = new ObjectMapper();
+	            Map<String, String> creds = objectMapper.readValue(requestBody, Map.class);
+	            String username = creds.get("username");
+	            String password = creds.get("password");
 
-            ObjectMapper objectMapper = new ObjectMapper();
-            Map<String, String> creds = objectMapper.readValue(requestBody, Map.class);
-            String username = creds.get("username");
-            String password = creds.get("password");
+	            // Authentifier l'utilisateur
+	            return authenticationManager.authenticate(
+	                    new UsernamePasswordAuthenticationToken(username, password)
+	            );
 
-            return authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(username, password)
-            );
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Error reading request body");
-        }
-    }
+	        } catch (IOException e) {
+	            e.printStackTrace();
+	            throw new RuntimeException("Erreur lors de la lecture du corps de la requête");
+	        }
+	    }
 
 
-    @Override
-    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
-            Authentication authResult) throws IOException, ServletException {
 
-        org.springframework.security.core.userdetails.User springUser = 
-            (org.springframework.security.core.userdetails.User) authResult.getPrincipal();
+	 @Override
+	    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
+	                                            Authentication authResult) throws IOException, ServletException {
+	        // Générer un JWT et l'ajouter à l'en-tête de la réponse
+	        org.springframework.security.core.userdetails.User springUser =
+	                (org.springframework.security.core.userdetails.User) authResult.getPrincipal();
 
-        // Extract roles
-        List<String> roles = new ArrayList<>();
-        springUser.getAuthorities().forEach(au -> {
-            roles.add(au.getAuthority());
-        });
+	        List<String> roles = new ArrayList<>();
+	        springUser.getAuthorities().forEach(au -> roles.add(au.getAuthority()));
 
-        // Generate JWT token
-        String jwt = JWT.create()
-                .withSubject(springUser.getUsername())
-                .withArrayClaim("roles", roles.toArray(new String[roles.size()]))
-                .withExpiresAt(new Date(System.currentTimeMillis() + SecParams.EXP_TIME))
-                .sign(Algorithm.HMAC256(SecParams.SECRET));
+	        String jwt = JWT.create()
+	                .withSubject(springUser.getUsername())
+	                .withArrayClaim("roles", roles.toArray(new String[roles.size()]))
+	                .withExpiresAt(new Date(System.currentTimeMillis() + SecParams.EXP_TIME))
+	                .sign(Algorithm.HMAC256(SecParams.SECRET));
 
-        // Add JWT token to the response header
-        response.addHeader("Authorization", SecParams.PREFIX + jwt);
-
-        // Debug: Log the token
-        System.out.println("JWT Token generated: " + jwt);
-    }
-
+	        response.addHeader("Authorization", SecParams.PREFIX + jwt);
+	    }
+	 
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response,
             AuthenticationException failed) throws IOException, ServletException {

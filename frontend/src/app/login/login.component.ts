@@ -22,16 +22,16 @@ export class LoginComponent implements OnInit {
       username: this.user.username,
       password: this.user.password
     };
-  
+
     this.authService.login(credentials).subscribe({
       next: (response) => {
         const jwt = response.headers.get('Authorization');
         if (jwt) {
           this.authService.saveToken(jwt);
-  
+
           // Debug: Log the roles
           console.log('User roles:', this.authService.roles);
-  
+
           // Redirect based on roles
           if (this.authService.isAdmin()) {
             this.router.navigate(['/admin/dashboard']);
@@ -55,7 +55,7 @@ export class LoginComponent implements OnInit {
       }
     });
   }
-  
+
   showErrorAlert() {
     Swal.fire({
       icon: 'error',
