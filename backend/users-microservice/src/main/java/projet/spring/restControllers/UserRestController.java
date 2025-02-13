@@ -17,7 +17,6 @@ import projet.spring.service.register.RegistrationRequest;
 @RestController
 @CrossOrigin(origins = "*") 
 @RequestMapping("/users")
-
 public class UserRestController {
 
     @Autowired
@@ -26,11 +25,15 @@ public class UserRestController {
     @Autowired
     UserService userService;
 
+
     @GetMapping("/all")
     public List<User> getAllUsers() {
-        return userRep.findAll();
+        System.out.println("Fetching all users with role USER");
+        List<User> users = userRep.findByRoles_Role("USER");
+        System.out.println("Users found: " + users.size());
+        return users;
     }
-
+    
     @PostMapping("/register")
     public User register(@RequestBody RegistrationRequest request) {
         return userService.registerUser(request);
@@ -53,6 +56,30 @@ public class UserRestController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Map.of("message", "Mot de passe actuel incorrect."));
+        }
+    }
+    
+    
+    
+
+    @GetMapping("/online")
+    public List<User> getOnlineUsers() {
+        return userService.getOnlineUsers();
+    }
+
+    @GetMapping("/offline")
+    public List<User> getOfflineUsers() {
+        return userService.getOfflineUsers();
+    }
+
+
+    @PutMapping("/{userId}/online")
+    public ResponseEntity<?> setUserOnlineStatus(@PathVariable Long userId, @RequestParam boolean online) {
+        try {
+            userService.setUserOnlineStatus(userId, online);
+            return ResponseEntity.ok().body(Map.of("message", "User status updated successfully."));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
         }
     }
 }

@@ -1,14 +1,16 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { DashboardComponent } from './Components/admin/dashboard/dashboard.component';
-import { EditProfileComponent } from './Components/admin/edit-profile/edit-profile.component';
-import { HomePageComponent } from './Components/client/home-page/home-page.component';
+
 import { AuthGuard } from './auth.guard';
-import { ClientListComponent } from './Components/admin/client-list/client-list.component';
+
 import { LoginComponent } from './login/login.component';
 import { RegisterComponent } from './register/register.component';
 import { ForbiddenComponent } from './forbidden/forbidden.component';
 import { VerifEmailComponent } from '../verif-email/verif-email.component';
+import { DashboardComponent } from './features/admin/dashboard/dashboard.component';
+import { EditProfileComponent } from './features/admin/edit-profile/edit-profile.component';
+import { HomePageComponent } from './features/client/home-page/home-page.component';
+import { ClientListComponent } from './features/admin/client-list/client-list.component';
 
 const routes: Routes = [
   { path: 'admin/dashboard', component: DashboardComponent, canActivate: [AuthGuard] },

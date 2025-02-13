@@ -1,9 +1,5 @@
 package projet.spring.security;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -14,7 +10,10 @@ import org.springframework.stereotype.Service;
 
 import projet.spring.entities.User;
 import projet.spring.repos.UserRepository;
-import projet.spring.service.UserService;
+
+import java.util.Set;
+import java.util.stream.Collectors;
+
 @Service
 public class MyUserDetailsService implements UserDetailsService {
 
@@ -31,13 +30,15 @@ public class MyUserDetailsService implements UserDetailsService {
         if (user == null) {
             throw new UsernameNotFoundException("User not found: " + username);
         }
-        System.out.println("User roles for " + username + ": " + user.getRoles()); // Log des rôles
+
+        Set<GrantedAuthority> authorities = user.getRoles().stream()
+                .map(role -> new SimpleGrantedAuthority(role.getRole()))
+                .collect(Collectors.toSet());
+
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
                 user.getPassword(),
-                user.getRoles().stream()
-                        .map(role -> new SimpleGrantedAuthority(role.getRole()))
-                        .collect(Collectors.toList())
+                authorities
         );
     }
 }

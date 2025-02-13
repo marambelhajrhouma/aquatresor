@@ -2,9 +2,11 @@ package projet.spring.service;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -22,9 +24,13 @@ import projet.spring.service.register.RegistrationRequest;
 import projet.spring.service.register.VerificationToken;
 import projet.spring.service.register.VerificationTokenRepository;
 import projet.spring.util.EmailSender;
+
 @Service
 @Transactional
 public class UserServiceImpl implements UserService {
+	
+	    @Autowired
+	    private UserRepository userRepository;
 
     private final UserRepository userRep;
     private final RoleRepository roleRep;
@@ -105,9 +111,10 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("Role USER not found!");
         }
         Role userRole = userRoleOptional.get();
-        List<Role> roles = new ArrayList<>();
+
+        // Use a Set<Role> instead of List<Role>
+        Set<Role> roles = new HashSet<>();
         roles.add(userRole);
-        newUser.setRoles(roles);
 
         // If the user is an admin, assign the ADMIN role
         if (request.getUsername().equals("nadhir")) {
@@ -119,6 +126,9 @@ public class UserServiceImpl implements UserService {
             roles.add(adminRole);
         }
 
+        // Set the roles as a Set<Role>
+        newUser.setRoles(roles);
+
         userRep.save(newUser);
 
         String code = this.generateCode();
@@ -129,7 +139,9 @@ public class UserServiceImpl implements UserService {
 
         return userRep.save(newUser);
     }
-
+    
+    
+    
     private String generateCode() {
         Random random = new Random();
         Integer code = 100000 + random.nextInt(900000);
@@ -196,4 +208,24 @@ public class UserServiceImpl implements UserService {
         System.out.println("Profile updated successfully.");
         return true; // Mise à jour réussie
     }
+
+
+    @Override
+    public List<User> getOnlineUsers() {
+        return userRep.findByOnline(true);
+    }
+
+    @Override
+    public List<User> getOfflineUsers() {
+        return userRep.findByOnline(false);
+    }
+
+    @Override
+    public void setUserOnlineStatus(Long userId, boolean online) {
+        User user = userRep.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
+        user.setOnline(online);
+        userRep.save(user);
+    }
+  
 }

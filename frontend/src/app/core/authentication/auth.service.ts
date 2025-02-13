@@ -1,16 +1,17 @@
 import { Injectable } from '@angular/core';
-import { User } from '../model/user.model';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import Swal from 'sweetalert2';
-import { tap } from 'rxjs/operators'; // Import tap
+import { tap } from 'rxjs/operators';
+import { User } from '../models/user.model';
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  apiURL: string = 'http://localhost:8002/users'; // Ajoutez /users ici
+  apiURL: string = 'http://localhost:8002/users';
   token!: string;
 
   public loggedUser!: string;
@@ -20,14 +21,14 @@ export class AuthService {
   public regitredUser: User = new User();
 
   constructor(private router: Router, private http: HttpClient) {
-    this.loadToken(); // Charger le token au démarrage
+    this.loadToken();
   }
 
-  // Connexion pour les administrateurs et les clients
+  
   login(user: { username: string, password: string }) {
     return this.http.post<any>(`${this.apiURL}/login`, user, {
       observe: 'response',
-      withCredentials: true // Include credentials
+      withCredentials: true 
     }).pipe(
       tap(response => {
         console.log('Response headers:', response.headers.keys());
@@ -49,7 +50,7 @@ export class AuthService {
 
     this.token = jwt;
     this.isloggedIn = true;
-    this.decodeJWT(); // Decode the token to extract roles
+    this.decodeJWT(); 
   }
 
   decodeJWT() {
@@ -58,36 +59,31 @@ export class AuthService {
     console.log('Decoded Token:', decodedToken); // Debug: Log the decoded token
     this.roles = decodedToken.roles;
     this.loggedUser = decodedToken.sub;
-  }
+}
 
-  // Enregistrement uniquement pour les utilisateurs (clients)
   registerUser(user: User) {
     return this.http.post<User>(`${this.apiURL}/register`, user, { observe: 'response' });
   }
 
-  // Validation de l'email
-  validateEmail(code: string) {
+   validateEmail(code: string) {
     return this.http.get<User>(`${this.apiURL}/verifyEmail/${code}`).pipe(
       tap((user) => {
-        // Save the user details in the AuthService
+
         this.regitredUser = user;
         this.roles = user.roles;
       })
     );
   }
 
-  // Chargement du token depuis le localStorage
   loadToken() {
     this.token = localStorage.getItem('jwt')!;
     this.decodeJWT();
   }
 
-  // Récupération du token
   getToken(): string {
     return this.token;
   }
 
-  // Déconnexion
   logout() {
     this.loggedUser = undefined!;
     this.roles = undefined!;
@@ -97,28 +93,24 @@ export class AuthService {
     this.router.navigate(['/login']);
   }
 
-  // Vérification si l'utilisateur est un administrateur
   isAdmin(): boolean {
     return this.roles?.includes('ADMIN') || false;
   }
 
-  // Vérification si le token est expiré
   isTokenExpired(): Boolean {
     return this.helper.isTokenExpired(this.token);
   }
 
-  // Définir l'utilisateur enregistré
   setRegistredUser(user: User) {
     this.regitredUser = user;
   }
 
-  // Récupérer l'utilisateur enregistré
   getRegistredUser() {
     return this.regitredUser;
   }
 
   public get isLoggedIn(): boolean {
-    return !!this.getToken(); // Check if a token exists
+    return !!this.getToken();
   }
 
   updateProfile(username: string, newEmail?: string, newPassword?: string, currentPassword?: string) {
@@ -139,4 +131,34 @@ export class AuthService {
       })
     );
   }
+
+
+
+
+  getOnlineUsers(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiURL}/online`);
+  }
+
+  getOfflineUsers(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiURL}/offline`);
+  }
+
+  private setUserOnlineStatus(online: boolean): void {
+    const userId = this.getUserIdFromToken(); // Récupérer l'ID de l'utilisateur depuis le token
+    if (userId) {
+      this.http.put(`${this.apiURL}/${userId}/online`, null, {
+        params: { online: online.toString() },
+      }).subscribe(
+        () => console.log(`User ${userId} is now ${online ? 'online' : 'offline'}`),
+        (error) => console.error('Failed to update online status:', error)
+      );
+    }
+  }
+
+  private getUserIdFromToken(): number | null {
+    if (!this.token) return null;
+    const decodedToken = this.helper.decodeToken(this.token);
+    return decodedToken.userId; // Assurez-vous que le token contient l'ID de l'utilisateur
+  }
+  
 }

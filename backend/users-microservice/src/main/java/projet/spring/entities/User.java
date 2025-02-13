@@ -2,13 +2,13 @@ package projet.spring.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.util.List;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "users") 
+@Table(name = "users")
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,9 +19,13 @@ public class User {
     private String password;
     private Boolean enabled;
     private String email;
+    private Boolean online; // Nouveau champ pour vérifier si l'utilisateur est en ligne
 
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id"))
-    private List<Role> roles;
+    @JoinTable(
+        name = "user_role",
+        joinColumns = @JoinColumn(name = "user_id"),
+        inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    private Set<Role> roles;
 }

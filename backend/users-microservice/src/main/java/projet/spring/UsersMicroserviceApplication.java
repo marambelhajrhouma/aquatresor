@@ -61,16 +61,16 @@ public class UsersMicroserviceApplication {
             adminUser.setEnabled(true);
             userService.saveUser(adminUser);
 
-            // Ajouter les rôles "ADMIN" et "USER" à l'utilisateur "admin"
             userService.addRoleToUser("admin", "ADMIN");
-            userService.addRoleToUser("admin", "USER");
-
+      
             System.out.println("Admin user 'admin' created successfully.");
         } else {
             System.out.println("User 'admin' already exists.");
         }
     }*/
-   /* 
+  
+    
+    /* 
     @PostConstruct
     void resetAdminPassword() {
         User adminUser = userService.findUserByUsername("admin");

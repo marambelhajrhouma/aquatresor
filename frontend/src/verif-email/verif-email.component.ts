@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { User } from '../app/model/user.model';
-import { AuthService } from '../app/Services/auth.service';
+import { AuthService } from '../app/core/authentication/auth.service';
 import Swal from 'sweetalert2';
+import { User } from '../app/core/models/user.model';
 
 @Component({
   selector: 'app-verif-email',

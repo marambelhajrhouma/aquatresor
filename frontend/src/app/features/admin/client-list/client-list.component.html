@@ -244,35 +244,48 @@
     </nav>
     <!-- End Navbar -->
     <div class="container mt-4">
-        <h2>Liste des Clients</h2>
-        <table class="table table-striped-m4">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Nom</th>
-              <th>Email</th>
-              <th>Téléphone</th>
-              <th>Adresse</th>
-              <th>Ville</th>
-              <th>Code Postal</th>
-              <th>Pays</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let client of clients">
-              <td>{{ client.id }}</td>
-              <td>{{ client.fullName }}</td>
-              <td>{{ client.email }}</td>
-              <td>{{ client.phoneNumber }}</td>
-              <td>{{ client.address }}</td>
-              <td>{{ client.city }}</td>
-              <td>{{ client.zipCode }}</td>
-              <td>{{ client.country }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <h2>Liste des Clients</h2>
       
+      <!-- Champ de recherche pour filtrer par nom -->
+      <div class="mb-3">
+        <input type="text" class="form-control" [(ngModel)]="searchName" (input)="filterClientsByName()" placeholder="Rechercher par nom...">
+      </div>
+    
+      <button (click)="toggleFilter()" class="btn btn-primary mb-3">
+        {{ showOnlineOnly ? 'Afficher tous les clients' : 'Afficher seulement les clients en ligne' }}
+      </button>
+      
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nom</th>
+            <th>Email</th>
+            <th>Actif</th>
+            <th>En ligne</th>
+            <th>Rôles</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let client of filteredClients">
+            <td>{{ client.user_id }}</td>
+            <td>{{ client.username }}</td>
+            <td>{{ client.email }}</td>
+            <td>{{ client.enabled ? 'Oui' : 'Non' }}</td>
+            <td>
+              <span [ngClass]="client.online ? 'text-success' : 'text-danger'">
+                {{ client.online ? 'En ligne' : 'Hors ligne' }}
+              </span>
+            </td>
+            <td>
+              <span *ngFor="let role of client.roles" class="badge bg-primary me-1">
+                {{ role.role }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </main>
 
 

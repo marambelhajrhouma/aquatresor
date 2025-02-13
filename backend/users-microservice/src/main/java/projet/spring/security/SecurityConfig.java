@@ -30,15 +30,17 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable()) // Désactiver CSRF pour les API stateless
-            .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Configurer CORS
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Session stateless
+            .csrf(csrf -> csrf.disable())
+            .cors(cors -> cors.configurationSource(corsConfigurationSource())) 
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) 
             .authorizeHttpRequests(authz -> authz
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                    .requestMatchers("/users/login", "/users/register", "/users/verifyEmail/**", "/error").permitAll() // Allow access to these endpoints without authentication
-                    .requestMatchers("/users/updateProfile").authenticated() 
-                    .anyRequest().authenticated() 
-                  )
+                    .requestMatchers("/users/login", "/users/register", "/users/verifyEmail/**", "/error").permitAll()
+                    .requestMatchers("/users/updateProfile").authenticated()
+                    .requestMatchers("/users/all").authenticated()
+                    .anyRequest().authenticated()
+            )
+
             .addFilterAfter(new JWTAuthenticationFilter(authenticationManager), UsernamePasswordAuthenticationFilter.class)
             .addFilterAfter(new JWTAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
 
