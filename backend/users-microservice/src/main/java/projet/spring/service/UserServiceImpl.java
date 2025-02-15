@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -36,8 +37,10 @@ public class UserServiceImpl implements UserService {
     private final RoleRepository roleRep;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final VerificationTokenRepository verificationTokenRepo;
-    private final EmailSender emailSender;
-
+  
+    @Autowired
+    private EmailSender emailSender;
+ 
     @Autowired
     public UserServiceImpl(UserRepository userRep, RoleRepository roleRep, BCryptPasswordEncoder bCryptPasswordEncoder,
                           VerificationTokenRepository verificationTokenRepo, EmailSender emailSender) {
@@ -77,6 +80,16 @@ public class UserServiceImpl implements UserService {
     public Role addRole(Role role) {
         return roleRep.save(role);
     }
+    
+    
+    public void createInstallerRole() {
+        if (roleRep.findByRole("INSTALLATEUR").isEmpty()) {
+            Role installerRole = new Role("INSTALLATEUR");
+            roleRep.save(installerRole);
+        }
+    }
+    
+    
 
     @Override
     public User findUserByUsername(String username) {
@@ -210,22 +223,76 @@ public class UserServiceImpl implements UserService {
     }
 
 
+   
+    
+    /***********************************/
     @Override
-    public List<User> getOnlineUsers() {
-        return userRep.findByOnline(true);
+    public void sendInstallerInvitation(String email) {
+        String token = UUID.randomUUID().toString();
+        String registrationUrl = "http://localhost:4200/installer-register?token=" + token;
+        String emailContent = "Cliquez sur ce lien pour vous inscrire : " + registrationUrl;
+        emailSender.sendEmail(email, emailContent);
     }
 
     @Override
-    public List<User> getOfflineUsers() {
-        return userRep.findByOnline(false);
+    public User registerInstaller(RegistrationRequest request) {
+        User user = new User();
+        user.setUsername(request.getUsername());
+        user.setPassword(bCryptPasswordEncoder.encode(request.getPassword()));
+        user.setEmail(request.getEmail());
+        user.setEnabled(true);
+
+        Role installerRole = roleRep.findByRole("INSTALLATEUR")
+                .orElseThrow(() -> new RuntimeException("Role INSTALLATEUR not found"));
+        user.setRoles(Set.of(installerRole));
+
+        return userRep.save(user); // Utilisez userRep ici
+    }
+
+
+    @Override
+    public User findUserByEmail(String email) {
+        Optional<User> user = userRep.findByEmail(email);
+        return user.orElse(null);
+    }
+   
+    
+    @Override
+    public String generateResetToken(String email) {
+        User user = userRep.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé avec l'email: " + email));
+
+        String token = UUID.randomUUID().toString();
+        user.setResetToken(token); // Utilisez le setter pour définir le token
+        userRep.save(user);
+
+        return token;
+    }
+    
+    @Override
+    public String generateValidationCode() {
+        Random random = new Random();
+        int code = 1000 + random.nextInt(9000); // Génère un code à 4 chiffres
+        return String.valueOf(code);
     }
 
     @Override
-    public void setUserOnlineStatus(Long userId, boolean online) {
-        User user = userRep.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
-        user.setOnline(online);
+    public boolean validateCode(String email, String code) {
+        User user = userRep.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé avec l'email: " + email));
+
+        return code.equals(user.getValidationCode());
+    }
+
+    @Override
+    public void resetPassword(String email, String newPassword) {
+        User user = userRep.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé avec l'email: " + email));
+
+        user.setPassword(bCryptPasswordEncoder.encode(newPassword));
+        user.setResetToken(null); // Réinitialiser le token
+        user.setValidationCode(null); // Réinitialiser le code de validation
         userRep.save(user);
     }
-  
+    
 }

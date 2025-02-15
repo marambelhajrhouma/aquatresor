@@ -1,7 +1,7 @@
 package projet.spring.restControllers;
 
-import java.util.List;
-import java.util.Map;
+
+import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -10,10 +10,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import projet.spring.dto.UpdateProfileRequest;
+import projet.spring.entities.Role;
+import projet.spring.entities.SocialUser;
 import projet.spring.entities.User;
 import projet.spring.repos.UserRepository;
+import projet.spring.security.JwtUtil;
 import projet.spring.service.UserService;
 import projet.spring.service.register.RegistrationRequest;
+
+
+
 @RestController
 @CrossOrigin(origins = "*") 
 @RequestMapping("/users")
@@ -24,6 +30,11 @@ public class UserRestController {
 
     @Autowired
     UserService userService;
+    
+    @Autowired
+    JwtUtil jwtUtil;
+    
+    
 
 
     @GetMapping("/all")
@@ -62,24 +73,102 @@ public class UserRestController {
     
     
 
-    @GetMapping("/online")
-    public List<User> getOnlineUsers() {
-        return userService.getOnlineUsers();
+    
+    /*************************************/
+    
+    @PostMapping("/send-installer-invitation")
+    public ResponseEntity<?> sendInstallerInvitation(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        userService.sendInstallerInvitation(email);
+        return ResponseEntity.ok().body(Map.of("message", "Invitation envoyée avec succès !"));
     }
 
-    @GetMapping("/offline")
-    public List<User> getOfflineUsers() {
-        return userService.getOfflineUsers();
-    }
-
-
-    @PutMapping("/{userId}/online")
-    public ResponseEntity<?> setUserOnlineStatus(@PathVariable Long userId, @RequestParam boolean online) {
+    @PostMapping("/register-installer")
+    public ResponseEntity<?> registerInstaller(@RequestBody RegistrationRequest request) {
+        System.out.println("Received request: " + request);
         try {
-            userService.setUserOnlineStatus(userId, online);
-            return ResponseEntity.ok().body(Map.of("message", "User status updated successfully."));
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+            User user = userService.registerInstaller(request);
+            System.out.println("User registered: " + user);
+            return ResponseEntity.ok(user);
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
         }
     }
+    
+    @PostMapping("/social-login")
+    public ResponseEntity<?> socialLogin(@RequestBody SocialUser socialUser) {
+        // Vérifiez si l'utilisateur existe déjà
+        User user = userService.findUserByEmail(socialUser.getEmail());
+        
+        if (user == null) {
+            // Créez un nouvel utilisateur avec le rôle USER par défaut
+            user = new User();
+            user.setEmail(socialUser.getEmail());
+            user.setUsername(socialUser.getName());
+            user.setEnabled(true);
+            
+            // Créer un Set de roles au lieu d'une List
+            Role userRole = new Role("USER");
+            Set<Role> roles = new HashSet<>();
+            roles.add(userRole);
+            user.setRoles(roles);
+            
+            userService.saveUser(user);
+        }
+        
+        // Générez un JWT et renvoyez-le
+        String jwt = jwtUtil.generateToken(user);
+        return ResponseEntity.ok()
+            .header("Authorization", "Bearer " + jwt)
+            .body(user);
+    }
+    
+    
+    
+    
+    @PostMapping("/request-reset-password")
+    public ResponseEntity<?> requestResetPassword(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+
+        // Vérifier si l'email existe
+        User user = userService.findUserByEmail(email);
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Email non trouvé."));
+        }
+
+        // Générer un code à 4 chiffres
+        String validationCode = userService.generateValidationCode();
+        user.setValidationCode(validationCode);
+        userRep.save(user);
+
+        // Envoyer le code par email
+        String emailContent = "Votre code de validation est : " + validationCode;
+        userService.sendEmailUser(user, emailContent);
+
+        return ResponseEntity.ok().body(Map.of("message", "Un code de validation a été envoyé à votre email."));
+    }
+
+    @PostMapping("/validate-code")
+    public ResponseEntity<?> validateCode(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        String code = request.get("code");
+
+        if (userService.validateCode(email, code)) {
+            return ResponseEntity.ok().body(Map.of("message", "Code valide."));
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Code invalide."));
+        }
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        String newPassword = request.get("newPassword");
+
+        userService.resetPassword(email, newPassword);
+        return ResponseEntity.ok().body(Map.of("message", "Mot de passe réinitialisé avec succès."));
+    }
+    
+    
 }

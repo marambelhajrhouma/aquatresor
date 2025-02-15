@@ -7,13 +7,13 @@ import { AuthService } from '../../../core/authentication/auth.service';
 @Component({
   selector: 'app-edit-profile',
   templateUrl: './edit-profile.component.html',
-  styleUrls: ['./edit-profile.component.css']
+  styleUrls: ['./edit-profile.component.css'],
 })
 export class EditProfileComponent implements OnInit {
   editProfileForm: FormGroup;
   message: string = '';
   isSuccess: boolean = false;
-  isEditing: boolean = false; // Initialize as boolean
+  isEditing: boolean = false;
 
   constructor(
     private fb: FormBuilder,
@@ -21,11 +21,10 @@ export class EditProfileComponent implements OnInit {
     private router: Router
   ) {
     this.editProfileForm = this.fb.group({
-      // Déclaration classique du FormControl pour "username"
       username: [{ value: this.authService.loggedUser, disabled: true }, [Validators.required]],
-      newEmail: ['', [Validators.email]], // Email facultatif
+      newEmail: ['', [Validators.email]],
       currentPassword: ['', [Validators.required]],
-      newPassword: ['', [Validators.required, Validators.minLength(6)]]
+      newPassword: ['', [Validators.required, Validators.minLength(6)]],
     });
   }
 
@@ -39,7 +38,6 @@ export class EditProfileComponent implements OnInit {
     this.isEditing = false;
   }
 
-  // Méthode de mise à jour du profil
   onUpdateProfile() {
     if (this.editProfileForm.invalid) {
       return;
@@ -48,22 +46,27 @@ export class EditProfileComponent implements OnInit {
     const { newEmail, currentPassword, newPassword } = this.editProfileForm.value;
     const username = this.authService.loggedUser;
 
-    console.log('Form Data:', { username, newEmail, currentPassword, newPassword });  // Log pour vérifier les valeurs du formulaire
+    console.log('Form Data:', { username, newEmail, currentPassword, newPassword });
 
     this.authService.updateProfile(username, newEmail, newPassword, currentPassword).subscribe({
       next: (response) => {
-        console.log('Update Profile Response:', response);  // Log pour vérifier la réponse
+        console.log('Update Profile Response:', response);
         this.isSuccess = true;
-        this.message = response.message || "Profil mis à jour avec succès.";  // Utilisez le message du serveur
+        this.message = response.message || 'Profil mis à jour avec succès.';
         Swal.fire('Succès', this.message, 'success');
         this.editProfileForm.reset();
       },
       error: (err) => {
-        console.error('Update Profile Error:', err);  // Log pour vérifier l'erreur
+        console.error('Update Profile Error:', err);
         this.isSuccess = false;
-        this.message = err.error?.message || "Erreur lors de la mise à jour du profil.";  // Utilisez le message d'erreur du serveur
+        this.message = err.error?.message || 'Erreur lors de la mise à jour du profil.';
         Swal.fire('Erreur', this.message, 'error');
-      }
+      },
     });
+  }
+
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/admin/signin']);
   }
 }

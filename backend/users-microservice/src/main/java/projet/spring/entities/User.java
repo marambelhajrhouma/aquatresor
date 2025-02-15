@@ -19,7 +19,12 @@ public class User {
     private String password;
     private Boolean enabled;
     private String email;
-    private Boolean online; // Nouveau champ pour vérifier si l'utilisateur est en ligne
+
+    @Column(name = "reset_token")
+    private String resetToken; // Token de réinitialisation
+
+    @Column(name = "validation_code")
+    private String validationCode; // Code de validation à 4 chiffres
 
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinTable(

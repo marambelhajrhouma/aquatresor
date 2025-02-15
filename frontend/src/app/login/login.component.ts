@@ -3,24 +3,82 @@ import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
 import { AuthService } from '../core/authentication/auth.service';
 import { User } from '../core/models/user.model';
+import { 
+  SocialAuthService, 
+  SocialUser, 
+  GoogleLoginProvider, 
+  FacebookLoginProvider 
+} from '@abacritt/angularx-social-login';
+
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
 })
 export class LoginComponent implements OnInit {
-  user = new User(); // Initialize user object
-  err: number = 0; // Error flag
-  message: string = ''; // Error message
+  // Add these properties to your component
+  GoogleLoginProvider = GoogleLoginProvider;
+  FacebookLoginProvider = FacebookLoginProvider;
+  
+  user = new User();
+  err: number = 0;
+  message: string = '';
+  socialUser!: SocialUser;
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    public socialAuthService: SocialAuthService
+  ) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.socialAuthService.authState.subscribe((user) => {
+      if (user) {
+        this.handleSocialLogin(user);
+      }
+    });
+  }
 
+  handleSocialLogin(user: SocialUser) {
+    this.authService.socialLogin(user).subscribe({
+      next: (response) => {
+        const jwt = response.headers.get('Authorization');
+        if (jwt) {
+          this.authService.saveToken(jwt);
+          this.redirectBasedOnRole();
+        } else {
+          this.err = 1;
+          this.message = 'Token not found in response';
+          this.showErrorAlert();
+        }
+      },
+      error: (err) => {
+        this.err = 1;
+        this.message = 'Erreur lors de la connexion sociale: ' + (err.error?.message || err.message || 'Erreur inconnue');
+        this.showErrorAlert();
+      },
+    });
+  }
+  // Rediriger en fonction du rôle
+  redirectBasedOnRole() {
+    if (this.authService.isAdmin()) {
+      this.router.navigate(['/admin/dashboard']);
+    } else if (this.authService.isInstaller()) {
+      this.router.navigate(['/installer-home']);
+    } else if (this.authService.isUser()) {
+      this.router.navigate(['/client/homepage']);
+    } else {
+      this.err = 1;
+      this.message = 'Rôle non reconnu';
+      this.showErrorAlert();
+    }
+  }
+
+  // Connexion classique
   onLoggedin() {
     const credentials = {
       username: this.user.username,
-      password: this.user.password
+      password: this.user.password,
     };
 
     this.authService.login(credentials).subscribe({
@@ -28,16 +86,7 @@ export class LoginComponent implements OnInit {
         const jwt = response.headers.get('Authorization');
         if (jwt) {
           this.authService.saveToken(jwt);
-
-          // Debug: Log the roles
-          console.log('User roles:', this.authService.roles);
-
-          // Redirect based on roles
-          if (this.authService.isAdmin()) {
-            this.router.navigate(['/admin/dashboard']);
-          } else {
-            this.router.navigate(['/client/homepage']);
-          }
+          this.redirectBasedOnRole();
         } else {
           this.err = 1;
           this.message = 'Token not found in response';
@@ -52,10 +101,11 @@ export class LoginComponent implements OnInit {
           this.message = 'Nom d\'utilisateur ou mot de passe incorrect';
         }
         this.showErrorAlert();
-      }
+      },
     });
   }
 
+  // Afficher une alerte d'erreur
   showErrorAlert() {
     Swal.fire({
       icon: 'error',

@@ -1,102 +1,215 @@
-<section class="min-vh-100 d-flex align-items-center bg-light">
-    <div class="container">
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    :root {
+      --primary-color: #2563eb;
+      --secondary-color: #1e40af;
+      --error-color: #dc2626;
+      --success-color: #16a34a;
+      --background-color: #f8fafc;
+      --card-background: rgba(255, 255, 255, 0.95);
+    }
+
+    .registration-section {
+      min-height: 100vh;
+      background-color: var(--background-color);
+      background-image: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      padding: 2rem 0;
+    }
+
+    .registration-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .registration-card {
+      background: var(--card-background);
+      border-radius: 1rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(10px);
+      padding: 2.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .form-title {
+      font-family: 'Times New Roman', Times, serif;
+      font-style:oblique;
+      color: #1f2937;
+      font-size: 1.875rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .form-subtitle {
+      color: #6b7280;
+      font-size: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .form-floating {
+      position: relative;
+      margin-bottom: 1.5rem;
+    }
+
+    .form-control {
+      height: 3.5rem;
+      padding: 1rem 0.75rem;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 0.5rem;
+      transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+    }
+
+    .form-floating label {
+      padding: 1rem 0.75rem;
+      color: #6b7280;
+    }
+
+    .invalid-feedback {
+      color: var(--error-color);
+      font-size: 0.875rem;
+      margin-top: 0.25rem;
+    }
+
+    .btn-register {
+      width: 100%;
+      padding: 0.875rem;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .btn-register:hover {
+      background-color: var(--secondary-color);
+      transform: translateY(-1px);
+    }
+
+    .btn-register:disabled {
+      background-color: #93c5fd;
+      cursor: not-allowed;
+    }
+
+    .image-container img {
+      width: 100%;
+      height: auto;
+      border-radius: 1rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .login-link {
+      color: var(--primary-color);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s ease;
+    }
+
+    .login-link:hover {
+      color: var(--secondary-color);
+    }
+
+    .spinner-border {
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+
+    @media (max-width: 992px) {
+      .registration-card {
+        margin-bottom: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <section class="registration-section">
+    <div class="registration-container">
       <div class="row g-0 align-items-center justify-content-center">
-        <!-- Form Column -->
         <div class="col-lg-6 mb-5 mb-lg-0">
-          <div class="card cascading-right" style="
-              background: hsla(0, 0%, 100%, 0.55);
-              backdrop-filter: blur(30px);
-              border-radius: 1rem;
-              box-shadow: 0 15px 25px rgba(0,0,0,.2);
-            ">
-            <div class="card-body p-5">
-              <div class="text-center mb-5">
-                <h2 class="fw-bold mb-0">Créer un compte</h2>
-                <p class="text-muted mt-2">Rejoignez-nous dès maintenant</p>
-              </div>
-  
-              <form [formGroup]="myForm" class="needs-validation">
-                <div class="alert alert-danger" *ngIf="err">
-                  <i class="fas fa-exclamation-circle me-2"></i>
-                  <strong>{{ err }}</strong>
-                </div>
-              
-                <div class="form-floating mb-3">
-                  <input type="text" id="username" class="form-control" 
-                         [ngClass]="{'is-invalid': myForm.controls['username'].invalid && myForm.controls['username'].touched}"
-                         formControlName="username" placeholder="Nom d'utilisateur">
-                  <label for="username">Nom d'utilisateur</label>
-                  <div *ngIf="myForm.controls['username'].invalid && myForm.controls['username'].touched" class="invalid-feedback d-block">
-                    <i class="fas fa-info-circle me-1"></i> Le nom d'utilisateur est obligatoire.
-                  </div>
-                </div>
-              
-                <div class="form-floating mb-3">
-                  <input type="email" id="email" class="form-control"
-                         [ngClass]="{'is-invalid': myForm.controls['email'].invalid && myForm.controls['email'].touched}"
-                         formControlName="email" placeholder="Email">
-                  <label for="email">Email</label>
-                  <div *ngIf="myForm.controls['email'].invalid && myForm.controls['email'].touched" class="invalid-feedback d-block">
-                    <div *ngIf="myForm.controls['email'].hasError('required')">L'email est obligatoire.</div>
-                    <div *ngIf="myForm.controls['email'].hasError('email')">Format d'email invalide.</div>
-                  </div>
-                </div>
-              
-                <div class="form-floating mb-3">
-                  <input type="password" id="password" class="form-control"
-                         [ngClass]="{'is-invalid': myForm.controls['password'].invalid && myForm.controls['password'].touched}"
-                         formControlName="password" placeholder="Mot de passe">
-                  <label for="password">Mot de passe</label>
-                  <div *ngIf="myForm.controls['password'].invalid && myForm.controls['password'].touched" class="invalid-feedback d-block">
-                    <div *ngIf="myForm.controls['password'].hasError('required')">Le mot de passe est obligatoire.</div>
-                    <div *ngIf="myForm.controls['password'].hasError('minlength')">Le mot de passe doit contenir au moins 6 caractères.</div>
-                  </div>
-                </div>
-              
-                <div class="form-floating mb-4">
-                  <input type="password" id="confirmPassword" class="form-control"
-                         [ngClass]="{'is-invalid': (myForm.controls['confirmPassword'].invalid || myForm.hasError('mismatch')) && myForm.controls['confirmPassword'].touched}"
-                         formControlName="confirmPassword" placeholder="Confirmer le mot de passe">
-                  <label for="confirmPassword">Confirmer le mot de passe</label>
-                  <div *ngIf="(myForm.controls['confirmPassword'].invalid || myForm.hasError('mismatch')) && myForm.controls['confirmPassword'].touched" class="invalid-feedback d-block">
-                    <div *ngIf="myForm.controls['confirmPassword'].hasError('required')">La confirmation du mot de passe est obligatoire.</div>
-                    <div *ngIf="myForm.hasError('mismatch')">Les mots de passe ne correspondent pas.</div>
-                  </div>
-                </div>
-              
-                <div class="text-center">
-                  <button type="button" [disabled]="myForm.invalid || loading" class="btn btn-success" (click)="onRegister()">
-                    <span *ngIf="loading" class="spinner-border spinner-border-sm me-2" role="status"></span>
-                    S'inscrire
-                  </button>
-                </div>
-              
-                <div class="text-center mt-4">
-                  <p class="mb-0">Vous avez déjà un compte ?
-                    <a routerLink="/login" class="text-second text-decoration-none">Se connecter</a>
-                  </p>
-                </div>
-              </form>
+          <div class="registration-card">
+            <div class="text-center mb-4">
+              <h2 class="form-title">Créer un compte</h2>
+              <p class="form-subtitle">Rejoignez notre communauté professionnelle</p>
             </div>
+
+            <form [formGroup]="myForm" class="needs-validation">
+              <div class="alert alert-danger" *ngIf="err">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                {{ err }}
+              </div>
+
+              <div class="form-floating">
+                <input type="text" id="username" class="form-control" 
+                       [ngClass]="{'is-invalid': myForm.controls['username'].invalid && myForm.controls['username'].touched}"
+                       formControlName="username" placeholder="Nom d'utilisateur">
+                <label for="username">Nom d'utilisateur</label>
+                <div *ngIf="myForm.controls['username'].invalid && myForm.controls['username'].touched" class="invalid-feedback">
+                  Le nom d'utilisateur est obligatoire
+                </div>
+              </div>
+
+              <div class="form-floating">
+                <input type="email" id="email" class="form-control"
+                       [ngClass]="{'is-invalid': myForm.controls['email'].invalid && myForm.controls['email'].touched}"
+                       formControlName="email" placeholder="Email">
+                <label for="email">Email professionnel</label>
+                <div *ngIf="myForm.controls['email'].invalid && myForm.controls['email'].touched" class="invalid-feedback">
+                  <div *ngIf="myForm.controls['email'].hasError('required')">L'email est obligatoire</div>
+                  <div *ngIf="myForm.controls['email'].hasError('email')">Veuillez entrer une adresse email valide</div>
+                </div>
+              </div>
+
+              <div class="form-floating">
+                <input type="password" id="password" class="form-control"
+                       [ngClass]="{'is-invalid': myForm.controls['password'].invalid && myForm.controls['password'].touched}"
+                       formControlName="password" placeholder="Mot de passe">
+                <label for="password">Mot de passe</label>
+                <div *ngIf="myForm.controls['password'].invalid && myForm.controls['password'].touched" class="invalid-feedback">
+                  <div *ngIf="myForm.controls['password'].hasError('required')">Le mot de passe est obligatoire</div>
+                  <div *ngIf="myForm.controls['password'].hasError('minlength')">Minimum 6 caractères requis</div>
+                </div>
+              </div>
+
+              <div class="form-floating mb-4">
+                <input type="password" id="confirmPassword" class="form-control"
+                       [ngClass]="{'is-invalid': (myForm.controls['confirmPassword'].invalid || myForm.hasError('mismatch')) && myForm.controls['confirmPassword'].touched}"
+                       formControlName="confirmPassword" placeholder="Confirmer le mot de passe">
+                <label for="confirmPassword">Confirmer le mot de passe</label>
+                <div *ngIf="(myForm.controls['confirmPassword'].invalid || myForm.hasError('mismatch')) && myForm.controls['confirmPassword'].touched" class="invalid-feedback">
+                  <div *ngIf="myForm.controls['confirmPassword'].hasError('required')">Veuillez confirmer votre mot de passe</div>
+                  <div *ngIf="myForm.hasError('mismatch')">Les mots de passe ne correspondent pas</div>
+                </div>
+              </div>
+
+              <button type="button" [disabled]="myForm.invalid || loading" class="btn-register" (click)="onRegister()">
+                <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+                Créer mon compte
+              </button>
+
+              <div class="text-center mt-4">
+                <p class="mb-0">Déjà membre ?
+                  <a routerLink="/login" class="login-link">Se connecter</a>
+                </p>
+              </div>
+            </form>
           </div>
         </div>
-  
-        <!-- Image Column -->
-        <div class="col-lg-6 mb-5 mb-lg-0">
-          <div class="card card-cascade">
-            <div class="view overlay">
-              <img src="https://img.freepik.com/vecteurs-libre/illustration-magasinage-ligne-plat-organique_52683-60704.jpg" 
-                   class="card-img-top" 
-                   alt="Interface inscription"
-                   style="border-top-left-radius: .5rem; border-top-right-radius: .5rem;" />
-              <div class="mask rgba-white-slight"></div>
-            </div>
+
+        <div class="col-lg-6">
+          <div class="image-container">
+            <img src="https://img.freepik.com/vecteurs-libre/illustration-magasinage-ligne-plat-organique_52683-60704.jpg" 
+                 alt="Interface inscription"
+                 loading="lazy">
           </div>
         </div>
       </div>
     </div>
   </section>
-  
-  
-  
-  
+</body>
+</html>

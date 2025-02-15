@@ -16,8 +16,13 @@ public interface UserService {
     User validateToken(String code);
     boolean updateUserProfile(String username, String newEmail, String newPassword, String currentPassword);
 
-
-    List<User> getOnlineUsers();
-    List<User> getOfflineUsers();
-    void setUserOnlineStatus(Long userId, boolean online);
+ 
+    // Add these methods
+    void sendInstallerInvitation(String email);
+    User registerInstaller(RegistrationRequest request);
+    User findUserByEmail(String email);
+    void resetPassword(String email, String newPassword);
+    String generateResetToken(String email);
+    String generateValidationCode(); // Générer un code à 4 chiffres
+    boolean validateCode(String email, String code); // Valider le code
 }

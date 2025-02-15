@@ -27,37 +27,29 @@ export class ClientListComponent implements OnInit {
   }
  
   loadClients(): void {
-      this.isLoading = true; // Activer le chargement
-      const token = this.authService.getToken();
-      const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-  
-      this.http.get<any[]>('http://localhost:8002/users/all', { headers })
-          .subscribe(
-              (data) => {
-                  this.clients = data;
-                  this.filteredClients = data;
-                  this.isLoading = false; // Désactiver le chargement
-              },
-              (error) => {
-                  console.error('Error fetching clients:', error);
-                  alert('Failed to load clients. Please try again.');
-                  this.isLoading = false; // Désactiver le chargement en cas d'erreur
-              }
-          );
-  }
- /* 
-toggleOnlineStatus(userId: number, online: boolean): void {
-  this.authService.setUserOnlineStatus(userId, online).subscribe(
-      () => this.loadClients(), // Recharger la liste après succès
-      (error) => console.error('Erreur de mise à jour du statut en ligne:', error)
-  );
-}
-*/
+    this.isLoading = true; // Activer le chargement
+    const token = this.authService.getToken();
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
 
-  toggleFilter(): void {
-    this.showOnlineOnly = !this.showOnlineOnly;
-    this.filterClientsByName(); // Appliquer le filtre après avoir changé l'état du filtre en ligne
-  }
+    this.http.get<any[]>('http://localhost:8002/users/all', { headers })
+        .subscribe(
+            (data) => {
+                console.log('Clients reçus :', data); // Ajoutez ce log pour vérifier les données
+                this.clients = data;
+                this.filteredClients = data;
+                this.isLoading = false; // Désactiver le chargement
+            },
+            (error) => {
+                console.error('Error fetching clients:', error);
+                alert('Failed to load clients. Please try again.');
+                this.isLoading = false; // Désactiver le chargement en cas d'erreur
+            }
+        );
+}
+
+
+
+  
 
   filterClientsByName(): void {
     this.filteredClients = this.clients.filter(client =>

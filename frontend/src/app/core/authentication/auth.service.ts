@@ -1,11 +1,13 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { Router } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import Swal from 'sweetalert2';
-import { tap } from 'rxjs/operators';
+import { catchError, tap } from 'rxjs/operators';
 import { User } from '../models/user.model';
 import { Observable } from 'rxjs';
+import { isPlatformBrowser } from '@angular/common';
+import { SocialUser } from '@abacritt/angularx-social-login';
 
 @Injectable({
   providedIn: 'root',
@@ -17,20 +19,23 @@ export class AuthService {
   public loggedUser!: string;
   public isloggedIn: Boolean = false;
   public roles!: string[];
-  private helper = new JwtHelperService();
   public regitredUser: User = new User();
 
-  constructor(private router: Router, private http: HttpClient) {
+  constructor(
+    @Inject(PLATFORM_ID) private platformId: Object,
+    private router: Router,
+    private http: HttpClient,
+    private jwtHelper: JwtHelperService // Use jwtHelper instead of helper
+  ) {
     this.loadToken();
   }
 
-  
   login(user: { username: string, password: string }) {
     return this.http.post<any>(`${this.apiURL}/login`, user, {
       observe: 'response',
-      withCredentials: true 
+      withCredentials: true,
     }).pipe(
-      tap(response => {
+      tap((response) => {
         console.log('Response headers:', response.headers.keys());
         const jwt = response.headers.get('Authorization');
         if (jwt) {
@@ -50,25 +55,25 @@ export class AuthService {
 
     this.token = jwt;
     this.isloggedIn = true;
-    this.decodeJWT(); 
+    this.decodeJWT();
   }
 
-  decodeJWT() {
-    if (!this.token) return;
-    const decodedToken = this.helper.decodeToken(this.token);
-    console.log('Decoded Token:', decodedToken); // Debug: Log the decoded token
-    this.roles = decodedToken.roles;
-    this.loggedUser = decodedToken.sub;
+  // modifier!
+decodeJWT() {
+  if (!this.token) return;
+  const decodedToken = this.jwtHelper.decodeToken(this.token); // Use jwtHelper
+  console.log('Decoded Token:', decodedToken); // Debug: Log the decoded token
+  this.roles = decodedToken.roles;
+  this.loggedUser = decodedToken.sub;
 }
 
   registerUser(user: User) {
     return this.http.post<User>(`${this.apiURL}/register`, user, { observe: 'response' });
   }
 
-   validateEmail(code: string) {
+  validateEmail(code: string) {
     return this.http.get<User>(`${this.apiURL}/verifyEmail/${code}`).pipe(
       tap((user) => {
-
         this.regitredUser = user;
         this.roles = user.roles;
       })
@@ -76,8 +81,10 @@ export class AuthService {
   }
 
   loadToken() {
-    this.token = localStorage.getItem('jwt')!;
-    this.decodeJWT();
+    if (isPlatformBrowser(this.platformId)) {
+      this.token = localStorage.getItem('jwt')!;
+      this.decodeJWT();
+    }
   }
 
   getToken(): string {
@@ -93,24 +100,22 @@ export class AuthService {
     this.router.navigate(['/login']);
   }
 
-  isAdmin(): boolean {
-    return this.roles?.includes('ADMIN') || false;
+ 
+ 
+  isTokenExpired(): boolean {
+    const token = localStorage.getItem('jwt');
+    return this.jwtHelper.isTokenExpired(token);
   }
 
-  isTokenExpired(): Boolean {
-    return this.helper.isTokenExpired(this.token);
-  }
 
+
+  
   setRegistredUser(user: User) {
     this.regitredUser = user;
   }
 
   getRegistredUser() {
     return this.regitredUser;
-  }
-
-  public get isLoggedIn(): boolean {
-    return !!this.getToken();
   }
 
   updateProfile(username: string, newEmail?: string, newPassword?: string, currentPassword?: string) {
@@ -121,44 +126,71 @@ export class AuthService {
       payload.currentPassword = currentPassword;
     }
 
-    console.log('Payload:', payload);  // Log pour vérifier le payload
+    console.log('Payload:', payload); // Log to verify the payload
 
     return this.http.put<any>(`${this.apiURL}/updateProfile`, payload, {
-      headers: { Authorization: `Bearer ${this.getToken()}` }
+      headers: { Authorization: `Bearer ${this.getToken()}` },
     }).pipe(
-      tap(response => {
+      tap((response) => {
         console.log('Server Response:', response);
       })
     );
   }
-
-
-
-
-  getOnlineUsers(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiURL}/online`);
+ 
+ 
+  getAllClients(): Observable<User[]> {
+    const token = this.getToken();
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    return this.http.get<User[]>(`${this.apiURL}/all`, { headers }).pipe(
+      catchError((error) => {
+        console.error('Error fetching clients:', error);
+        throw new Error('Failed to load clients. Please try again.');
+      })
+    );
   }
 
-  getOfflineUsers(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiURL}/offline`);
+  isAdmin(): boolean {
+    return this.roles?.includes('ADMIN') || false;
   }
 
-  private setUserOnlineStatus(online: boolean): void {
-    const userId = this.getUserIdFromToken(); // Récupérer l'ID de l'utilisateur depuis le token
-    if (userId) {
-      this.http.put(`${this.apiURL}/${userId}/online`, null, {
-        params: { online: online.toString() },
-      }).subscribe(
-        () => console.log(`User ${userId} is now ${online ? 'online' : 'offline'}`),
-        (error) => console.error('Failed to update online status:', error)
-      );
-    }
+  isInstaller(): boolean {
+    return this.roles?.includes('INSTALLATEUR') || false;
   }
 
-  private getUserIdFromToken(): number | null {
-    if (!this.token) return null;
-    const decodedToken = this.helper.decodeToken(this.token);
-    return decodedToken.userId; // Assurez-vous que le token contient l'ID de l'utilisateur
+  isUser(): boolean {
+    return this.roles?.includes('USER') || false;
   }
+
+  socialLogin(user: SocialUser): Observable<HttpResponse<any>> {
+    return this.http.post<any>(`${this.apiURL}/social-login`, user, {
+      observe: 'response',
+    });
+  }
+
+  requestResetPassword(email: string): Observable<any> {
+    return this.http.post(`${this.apiURL}/request-reset-password`, { email });
+  }
+
+  validateCode(email: string, code: string): Observable<any> {
+    return this.http.post(`${this.apiURL}/validate-code`, { email, code });
+  }
+
+  resetPassword(email: string, newPassword: string): Observable<any> {
+    return this.http.post(`${this.apiURL}/reset-password`, { email, newPassword });
+  }
+
+  get isLoggedIn(): boolean {
+    return !!this.token && !this.jwtHelper.isTokenExpired(this.token); // Use jwtHelper
+  }
+
+  hasAnyRole(requiredRoles: string[]): boolean {
+    return requiredRoles.some((role) => this.roles.includes(role));
+  }
+
+  getRequiredRoles(): string[] {
+    return this.roles; // Replace with logic to fetch roles from route data if needed
+  }
+
+
   
 }

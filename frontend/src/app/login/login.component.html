@@ -1,67 +1,147 @@
-<div class="container mt-5">
-  <div class="row justify-content-center">
-    <div class="col-md-6 col-lg-5">
-      <!-- Alert message for error -->
-      <div class="alert alert-danger" *ngIf="err === 1">
-        <strong>{{ message }}</strong>
-      </div>
+<html>
+  <head>
+<style>
+  /* Style pour les boutons de connexion sociale */
+.btn-outline-danger, .btn-outline-primary {
+  transition: all 0.3s ease;
+}
 
-      <!-- Login form -->
-      <div class="card shadow-lg p-4 rounded">
-        <div class="text-center mb-4">
-          <h3 class="fw-bold">Connexion</h3>
-          <p class="text-muted">Connectez-vous pour accéder à votre compte</p>
+.btn-outline-danger:hover {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn-outline-primary:hover {
+  background-color: #0d6efd;
+  color: white;
+}
+
+/* Style pour le séparateur */
+.divider {
+  position: relative;
+  text-align: center;
+}
+
+.divider::before, .divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.divider::before {
+  margin-right: 0.5rem;
+}
+
+.divider::after {
+  margin-left: 0.5rem;
+}
+
+/* Style pour la carte */
+.card {
+  border: none;
+  border-radius: 10px;
+}
+
+/* Style pour les icônes */
+.fab {
+  font-size: 1.2rem;
+}
+</style>
+  </head>
+
+  <body>
+
+
+    <div class="container mt-4">
+      <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+          <!-- Alert message for error -->
+          <div class="alert alert-danger" *ngIf="err === 1">
+            <strong>{{ message }}</strong>
+          </div>
+    
+          <!-- Login form -->
+          <div class="card shadow-lg p-4 rounded">
+            <div class="text-center mb-4">
+              <h3 class="form-title" style="font-family: 'Times New Roman', Times, serif; font-style:oblique; color: #1f2937; font-size: 1.875rem; font-weight: 700; margin-bottom: 0.5rem;">
+                Connexion
+              </h3>
+              <p class="text-muted">Connectez-vous pour accéder à votre compte</p>
+            </div>
+    
+            <!-- Social login buttons -->
+            <div class="text-center mb-4">
+              <button class="btn btn-outline-danger me-2" (click)="socialAuthService.signIn(GoogleLoginProvider.PROVIDER_ID)">
+                <i class="fab fa-google me-2"></i> Google
+              </button>
+              <button class="btn btn-outline-primary" (click)="socialAuthService.signIn(FacebookLoginProvider.PROVIDER_ID)">
+                <i class="fab fa-facebook me-2"></i> Facebook
+              </button>
+            </div>
+    
+            <!-- Divider -->
+            <div class="divider d-flex align-items-center my-1">
+              <p class="text-center fw-bold mx-3 mb-0 text-muted">OU</p>
+            </div>
+    
+            <!-- Username input -->
+            <div class="mb-4">
+              <label for="username" class="form-label">Nom d'utilisateur</label>
+              <input
+                type="text"
+                id="username"
+                name="username"
+                class="form-control"
+                [(ngModel)]="user.username"
+                placeholder="Entrez votre nom d'utilisateur"
+                required
+              />
+            </div>
+    
+            <!-- Password input -->
+            <div class="mb-4">
+              <label for="password" class="form-label">Mot de passe</label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                class="form-control"
+                [(ngModel)]="user.password"
+                placeholder="Entrez votre mot de passe"
+                required
+              />
+              <div class="d-flex justify-content-end mt-2">
+                <a routerLink="/request-reset-password" class="text-primary text-decoration-none small">
+                  Mot de passe oublié ?
+                </a>
+              </div>
+            </div>
+    
+            <!-- Submit button -->
+            <div class="d-grid">
+              <button
+                type="button"
+                (click)="onLoggedin()"
+                class="btn btn-primary btn-lg"
+              >
+                Connexion
+              </button>
+            </div>
+    
+            <!-- Link to register -->
+            <div class="text-center mt-3">
+              <p class="mb-0">
+                Vous n'avez pas de compte ?
+                <a routerLink="/register" class="text-decoration-none">S'inscrire</a>
+              </p>
+            </div>
+          </div>
         </div>
-
-        <form>
-          <!-- Username input -->
-          <div class="mb-3">
-            <label for="username" class="form-label">Nom d'utilisateur</label>
-            <input
-              type="text"
-              id="username"
-              name="username"
-              class="form-control"
-              [(ngModel)]="user.username"
-              placeholder="Entrez votre nom d'utilisateur"
-              required
-            />
-          </div>
-
-          <!-- Password input -->
-          <div class="mb-4">
-            <label for="password" class="form-label">Mot de passe</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              class="form-control"
-              [(ngModel)]="user.password"
-              placeholder="Entrez votre mot de passe"
-              required
-            />
-          </div>
-
-          <!-- Submit button -->
-          <div class="d-grid">
-            <button
-              type="button"
-              (click)="onLoggedin()"
-              class="btn btn-primary btn-lg"
-            >
-              Connexion
-            </button>
-          </div>
-
-          <!-- Link to register if user doesn't have an account -->
-          <div class="text-center mt-3">
-            <p class="mb-0">
-              Vous n'avez pas de compte ?
-              <a routerLink="/register" class="text-decoration-none">S'inscrire</a>
-            </p>
-          </div>
-        </form>
       </div>
     </div>
-  </div>
-</div>
+
+
+  </body>
+</html>
+
+
