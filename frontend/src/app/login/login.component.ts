@@ -10,13 +10,11 @@ import {
   FacebookLoginProvider 
 } from '@abacritt/angularx-social-login';
 
-
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
 })
 export class LoginComponent implements OnInit {
-  // Add these properties to your component
   GoogleLoginProvider = GoogleLoginProvider;
   FacebookLoginProvider = FacebookLoginProvider;
   
@@ -59,7 +57,7 @@ export class LoginComponent implements OnInit {
       },
     });
   }
-  // Rediriger en fonction du rôle
+
   redirectBasedOnRole() {
     if (this.authService.isAdmin()) {
       this.router.navigate(['/admin/dashboard']);
@@ -74,7 +72,6 @@ export class LoginComponent implements OnInit {
     }
   }
 
-  // Connexion classique
   onLoggedin() {
     const credentials = {
       username: this.user.username,
@@ -105,7 +102,6 @@ export class LoginComponent implements OnInit {
     });
   }
 
-  // Afficher une alerte d'erreur
   showErrorAlert() {
     Swal.fire({
       icon: 'error',

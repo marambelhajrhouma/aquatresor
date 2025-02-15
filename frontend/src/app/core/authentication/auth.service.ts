@@ -25,7 +25,7 @@ export class AuthService {
     @Inject(PLATFORM_ID) private platformId: Object,
     private router: Router,
     private http: HttpClient,
-    private jwtHelper: JwtHelperService // Use jwtHelper instead of helper
+    private jwtHelper: JwtHelperService // Ensure this is correctly injected
   ) {
     this.loadToken();
   }
@@ -42,6 +42,7 @@ export class AuthService {
           this.saveToken(jwt);
         } else {
           console.error('Authorization header not found in response');
+          throw new Error('Authorization header not found in response');
         }
       })
     );
@@ -58,15 +59,14 @@ export class AuthService {
     this.decodeJWT();
   }
 
-  // modifier!
-decodeJWT() {
-  if (!this.token) return;
-  const decodedToken = this.jwtHelper.decodeToken(this.token); // Use jwtHelper
-  console.log('Decoded Token:', decodedToken); // Debug: Log the decoded token
-  this.roles = decodedToken.roles;
-  this.loggedUser = decodedToken.sub;
-}
 
+  decodeJWT() {
+    if (!this.token) return;
+    const decodedToken = this.jwtHelper.decodeToken(this.token);
+    console.log('Decoded Token:', decodedToken);
+    this.roles = decodedToken.roles;
+    this.loggedUser = decodedToken.sub;
+  }
   registerUser(user: User) {
     return this.http.post<User>(`${this.apiURL}/register`, user, { observe: 'response' });
   }

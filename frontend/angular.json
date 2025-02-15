@@ -27,7 +27,13 @@
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": [
-              "zone.js"
+              "zone.js",
+
+              
+              "src/polyfills.ts",
+              "@angular/localize/init"
+
+
             ],
             "tsConfig": "tsconfig.app.json",
             "assets": [
